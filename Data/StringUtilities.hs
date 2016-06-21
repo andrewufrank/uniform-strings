@@ -219,9 +219,9 @@ prop_toLower2 :: Text -> Bool
 prop_toLower2 = idempotent toLower'
 
 prop_toUpper1 :: String -> Bool
-prop_toUpper1 = idempotent toLower'
+prop_toUpper1 = idempotent toUpper'
 prop_toUpper2 :: Text -> Bool
-prop_toUpper2 = idempotent toLower'
+prop_toUpper2 = idempotent toUpper'
 
 prop_isPrefixOf a b = isPrefixOf' (s2t a) (s2t b) == isPrefixOf' a b
 prop_isInfixOf' a b = isInfixOf' (s2t a) (s2t b) == isInfixOf' a b
@@ -229,7 +229,6 @@ prop_stripPrefix'f a b = stripPrefix' (s2t a) (s2t b) == fmap s2t  (stripPrefix'
 
 prop_intercalate :: String -> [String] -> Bool
 prop_intercalate a b = intercalate' (s2t a) (map s2t b) ==  fmap s2t (intercalate' a b)
-        -- fails iwth "a" []
 
 prop_trim = trim' . s2t  <=> s2t . trim'
 prop_trim2 :: String -> Bool
@@ -238,9 +237,7 @@ prop_trim3 :: Text -> Bool
 prop_trim3 = idempotent trim'
 
 prop_splitOn2 a b = splitOn' (s2t a) (s2t b)  == fmap (map s2t) (splitOn' a b)
-        -- fails on empty input
-        -- fails with ""
-                        --"a"
+
 prop_splitOn_intercalate :: String -> [String] -> Bool
 prop_splitOn_intercalate a b =
     if null a then True
