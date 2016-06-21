@@ -90,6 +90,9 @@ liftIOstrings   = liftIO . putStrLn. unwords
 
 
 instance Strings String where
+    toString = id
+    toText = s2t
+
     putIOwords  =liftIOstrings
     unwords' = unwords
     words' = words
@@ -115,6 +118,9 @@ instance Strings String where
 --    show' = show
 
 instance Strings T.Text where
+    toString = t2s
+    toText = id
+
     putIOwords = liftIOstrings . map T.unpack
     unwords' = T.unwords
     words' =  T.words
