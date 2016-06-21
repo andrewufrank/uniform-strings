@@ -2,9 +2,9 @@ uniformity: reducing complexity of software bottom up
 
 complexity is the enemy of programmers. complexity is like entropy - you have to spend resources to reduce entropy and introduce order. over time, software grows and regular efforts to increase order and reduce complexity are required. haskell has grown during the two decades i am using it. hackage - the repository of useful packages of code contributed by others - has multiplied. It is often difficult, to find the "right" package.
 
-Areas where i sense Haskell has become "too complex" are places where too many different solutions for the same task are offered, which are nearly identical, but only nearly identical and thus contribute to the complexity increase. a prime example is handling of character strings, IO, etc. At this time, I addess issues with character strings but i see that others have published packages with similar intentions (e.g. uniform-io).
+Areas where i sense Haskell has become "too complex" are places where many different solutions for the same task are offered, which are nearly identical, but only nearly identical and thus contribute to the complexity increase. a prime example is handling of character strings, IO, etc. At this time, I addess issues with character strings but i see that others have published packages with similar intentions (e.g. uniform-io).
 
-there are (at least) the following representations for character strings: 
+there are (at least) the several representations for character strings, which have different performance and are appropriate in different applications.
 
 - the classical String
 - the more efficient Text 
@@ -12,6 +12,8 @@ there are (at least) the following representations for character strings:
 - urlEncoding (as String or Text) 
 
 conversion between these formats are in principle easy but distributed over several packages, which must be identified and individually importet. the names for the conversion routines vary - all details wich add complexity and throw the programmer off when concentrating on some other aspect.
+
+for each of these representations, functions with nearly the same semantics and nearly the same name exist.
 
 the package uniformity-strings provides:
 - a regularly named set of conversions
@@ -26,7 +28,8 @@ the package includes tests for
 
 other similar packages are 
 string-conversions: gives a single polymorphic operation "convertString" and some monomorphic (typed) functions. I found that use of the polymorphic functins requires many type annotations. for this reason, i constructed short named monomorphic functions.
-(it might be desirable to extend uniform-strings to include the other formats from string-conversion and to use the conversions offered there).  
+it might be desirable to extend uniform-strings to include the other formats from string-conversion and to use the conversions offered in string-conversions. 
+perhaps, ultimately, the two packages should be merged?  
 
 convertible-text package is depreceated.
 

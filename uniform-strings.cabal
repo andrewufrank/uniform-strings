@@ -4,26 +4,27 @@ cabal-version: >=1.22
 build-type: Simple
 license: GPL
 license-file: GPL_3
+maintainer: Andrew U. Frank <andrewufrank@gmail.com>
+author: Andrew Frank
 category: Data, Text
-synopsis: manipulate and convert string text bytestring (uniform, consistent)
-description: reduce complexity of Haskell by providing a uniform set
-    of conversion routines between string, text, bytestring and urlEncoding
-    and the most important text manipulation functions for string and text
-
-data-dir: ""
+synopsis: manipulate and convert strings of characters uniformly and consistently
+description: reduce complexity of Haskell by providing a set of uniformly named
+    of conversion routines between String, Text, ByteString and urlEncoding
+    with the most important text manipulation functions for string and text 
+    where the semantic is the same (tested with quickcheck).
+ 
+source-repository head
+    type: git 
+    location: https://github.com/andrewufrank/uniform-strings.git
 
 library
     build-depends:
-        HTTP, base -any,
---                   bytestring -any,
+        HTTP, base >=4.8 && <= 4.9,
         mtl,
         HTF, test-invariant,
---        bytestring-arbitrary,
         quickcheck-text,
---        quickcheck-properties,
-        --
         bytestring,
-        text -any, utf8-string -any,
+        text, utf8-string,
         split
     exposed-modules:
         Data.Strings
