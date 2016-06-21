@@ -1,0 +1,10 @@
+dist
+.HTF
+\#*#
+*~
+*.lkshs
+*.lkshw
+*/*.lkshs
+*/*.lkshw
+unused.txt
+*.autosave*
