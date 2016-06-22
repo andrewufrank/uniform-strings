@@ -19,7 +19,7 @@ source-repository head
 
 library
     build-depends:
-        HTTP, base >=4.8 && <= 4.9,
+        HTTP, base >=4.8 && <= 5,
         mtl,
         HTF, test-invariant,
         quickcheck-text,
@@ -27,6 +27,7 @@ library
         text, utf8-string,
         -- for testing
 --        cgi,
+        safe,
         split
     exposed-modules:
         Data.Strings

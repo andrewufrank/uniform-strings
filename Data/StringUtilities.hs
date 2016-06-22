@@ -45,7 +45,7 @@ import Data.List as L
 --import Data.List (isInfixOf, sortBy, stripPrefix, isPrefixOf)
 import Data.StringConversion
 import qualified Data.List.Split as S
-
+import Safe
 --
 class Strings a where
     toString ::  a -> String
@@ -276,4 +276,5 @@ prop_splitOn_intercalate a b =
         -- fails on "" [""]
 
 test_splitOn = assertBool ( Just [] == splitOn' [] ("a"::String))
+test_b2s = assertEqual ("a"::String) (toString . t2b $ ("a" :: Text))
 
