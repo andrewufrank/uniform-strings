@@ -139,6 +139,30 @@ instance Strings T.Text where
     splitOn' o s= if null' o then Just []
                         else if null' s then Nothing else Just $ T.splitOn o s
 
+instance Strings ByteString  where
+-- doubtful - what is possible without error? t2b . b2t is not id
+    toString = b2s
+    toText = b2t
+
+    putIOwords = liftIOstrings . map b2s
+    unwords' = t2b . T.unwords . map b2t
+--    words' =  T.words
+--    lines' = T.lines
+--    unlines' = T.unlines
+--    append' = T.append
+--    null' = T.null
+--    toUpper' = T.toUpper
+--    toLower' = T.toLower
+--    concat' = T.concat
+--    isPrefixOf' = T.isPrefixOf
+    isInfixOf' t s  = T.isInfixOf (b2t s) (b2t t)
+--    stripPrefix' = T.stripPrefix
+    intercalate' x a  = if null a then Nothing
+            else Just . t2b $  T.intercalate (b2t x) (map b2t a)
+    trim' = s2b . trim' . b2s
+    splitOn' o s= if null' o then Just []
+                        else if null' s then Nothing else Just . map t2b $ T.splitOn (b2t o) (b2t s)
+
 --instance Strings2 Text Text where
 --    show' =  id
 --instance  Strings2 String Text where

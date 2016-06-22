@@ -25,6 +25,8 @@ library
         quickcheck-text,
         bytestring,
         text, utf8-string,
+        -- for testing
+--        cgi,
         split
     exposed-modules:
         Data.Strings

@@ -51,10 +51,10 @@ import qualified Data.Text as T
 import Data.Text (Text)
 import Data.ByteString
 import qualified Data.ByteString.UTF8 as BSUTF (toString, fromString)
-import Data.Text.Encoding (decodeUtf8, encodeUtf8)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8, decodeUtf8')
 import qualified Data.Text.IO as T (putStrLn)
 import Network.HTTP (urlDecode, urlEncode)
-
+--import Network.CGI.Protocol (maybeRead)
 newtype MyString = MyString String deriving (Eq, Show)
 
 
@@ -77,6 +77,16 @@ t2b = encodeUtf8
 b2t ::  ByteString -> T.Text  -- not inverse (not any arbitrary input)
 b2t = decodeUtf8
 
+--testUrlEncoding :: T.Text -> Bool
+testUrlEncoding t = error "i do not see a way to check if proper urlEncoded text"
+
+testByteStringUtf8 :: ByteString -> Bool
+-- used for avoiding problems with the quickcheck conversions
+testByteStringUtf8 b =
+    case decodeUtf8' b of
+                -- :: ByteString -> Either UnicodeException Text
+                    Left s -> False
+                    Right t -> True
 t2u :: T.Text -> T.Text  -- url encoded
 t2u = s2u . t2s
 
@@ -106,9 +116,13 @@ prop_b2s = inverts b2s s2b
 
 --prop_t2u = inverts t2u u2t -- fails for text which is not url encoding
 prop_u2t = inverts u2t t2u  -- usually passes, fails occasionally, but not yet clear on what input
+-- fails for   65535 to 65533 not a character to replacement
 
 --prop_t2b = inverts t2b b2t  -- no aribtrary for bytestring
 prop_b2t = inverts b2t t2b
+
+test_b2tx = assertEqual "\65533" (u2t $ t2u "\65535")
+-- maps inexactly 65535 to 65533 not a character to replacement
 
 conversionTest = do
     let
