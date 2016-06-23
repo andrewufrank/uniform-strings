@@ -3,9 +3,10 @@
 -- Module      :  Strings
 -- Copyright   :
 --
--- | a module with a class for strings, sucht that the normal ops are
---  all polymorphic
--- check which operations are not one-to-one
+-- | a module to convert between character string encodings
+--
+-- would require systematic checks what are permited characters
+-- (especially for input to urlEncoding)
 
 -- the latin encoding is produced by show ...
 -----------------------------------------------------------------------------
@@ -31,7 +32,8 @@ module Data.StringConversion (ByteString
 --        ,   headGuarded
             -- these are replacements for Basics
     , s2b, b2s, b2t, t2s, t2b, t2u, s2t, s2u
-    -- urlencode is always as Text -- used in web packages
+    -- uses UTF8 as encoding in ByteString
+    -- urlencode is always represented the same as the input
     , Text
     , htf_thisModulesTests
     , conversionTest
@@ -40,6 +42,8 @@ module Data.StringConversion (ByteString
 import Test.Framework
 import Test.Invariant
 import Data.Text.Arbitrary
+import Data.Maybe
+
 --import Data.ByteString.Arbitrary
 -- does not produce a simple Arbitrary for Bytestring, could be converted?
 
@@ -48,12 +52,14 @@ import Control.Monad.State (MonadIO, liftIO)
 
 import GHC.Exts( IsString(..) )
 import qualified Data.Text as T
+import qualified Data.List as L
 import Data.Text (Text)
 import Data.ByteString
 import qualified Data.ByteString.UTF8 as BSUTF (toString, fromString)
 import Data.Text.Encoding (decodeUtf8, encodeUtf8, decodeUtf8')
 import qualified Data.Text.IO as T (putStrLn)
 import Network.HTTP (urlDecode, urlEncode)
+import qualified Snap.Core as SN
 --import Network.CGI.Protocol (maybeRead)
 newtype MyString = MyString String deriving (Eq, Show)
 
@@ -78,7 +84,9 @@ b2t ::  ByteString -> T.Text  -- not inverse (not any arbitrary input)
 b2t = decodeUtf8
 
 --testUrlEncoding :: T.Text -> Bool
-testUrlEncoding t = error "i do not see a way to check if proper urlEncoded text"
+testUrlEncoding t = isJust . SN.urlDecode . t2b $ t
+--urlDecode :: ByteString -> Maybe ByteString
+
 
 testByteStringUtf8 :: ByteString -> Bool
 -- used for avoiding problems with the quickcheck conversions
@@ -88,18 +96,29 @@ testByteStringUtf8 b =
                     Left s -> False
                     Right t -> True
 t2u :: T.Text -> T.Text  -- url encoded
-t2u = s2u . t2s
+-- ^ convert text to url (uses code from Network.HTTP, which converts space into %20)
+t2u = s2t . s2u . t2s
 
 u2t :: T.Text -> T.Text -- from url encode (not inverse)
-u2t = s2t . u2s
+-- ^ convert url to text (uses code from Network.HTTP, which converts space into %20)
+u2t = s2t . u2s . t2s
 
-s2u :: String -> T.Text
-s2u = s2t . urlEncode
+s2u :: String -> String
+-- ^ convert string to url   (uses code from Network.HTTP, which converts space into %20)
+s2u =   urlEncode
 
-u2s :: T.Text -> String     --not inverse
-u2s = urlDecode . t2s
+u2s :: String -> String     --not inverse
+-- ^ convert url to string   (uses code from Network.HTTP, which converts space into %20)
+u2s = urlDecode
 
---
+u2b :: ByteString -> Maybe ByteString
+-- ^ convert url to bytestring   (uses code from snap.core, which converts space into +)
+u2b = SN.urlDecode
+
+b2u :: ByteString ->  ByteString
+-- ^ convert url to bytestring in url (uses code from snap.core, which converts space into +)
+b2u = SN.urlEncode
+
 prop_s2t = inverts s2t t2s
 prop_t2s = inverts t2s s2t
 
@@ -115,15 +134,40 @@ prop_u2s = inverts u2s s2u
 prop_b2s = inverts b2s s2b
 
 --prop_t2u = inverts t2u u2t -- fails for text which is not url encoding
-prop_u2t a = if "\65535" `T.isInfixOf` a then True
+prop_u2ta a = if "\65535" `T.isInfixOf` a then True
             else inverts u2t t2u a -- usually passes, fails occasionally, but not yet clear on what input
 -- fails for   65535 to 65533 not a character to replacement
+prop_u2tb a = if testUrlEncoding a then inverts u2t t2u a
+                    else True
+--prop_t2u a = if testUrlEncoding a then inverts t2u u2t a else True
+-- is not inverse because result is encoded, input not
+
 
 --prop_t2b = inverts t2b b2t  -- no aribtrary for bytestring
 prop_b2t = inverts b2t t2b
 
-test_b2tx = assertEqual "\65533" (u2t $ t2u "\65535")
--- maps inexactly 65535 to 65533 not a character to replacement
+--test_b2tx = assertEqual "\65533" (u2t $ t2u "\65535")
+---- maps inexactly 65535 to 65533 not a character to replacement
+--test_t2u1 = assertEqual "\SYN{" (u2t "\SYN{")
+--test_t2u2  = assertEqual "\22155\63245" (u2t "\22155\63245")
+--
+--test_t2u3 = assertEqual "%16%7B" (t2u "\SYN{")
+--test_t2u4  = assertEqual "%E5%9A%8B%EF%9C%8D" (t2u "\22155\63245")
+
+--prop_b2u a =   maybe True ((a==). b2t .  b2u) . u2b $ (t2b a)
+-- some inputs cannot convert, how to filter?
+prop_u2b a =   maybe True ((a==). b2t) .  u2b  . b2u $ (t2b a)
+--prop_u2b = inverts u2b b2u
+
+--prop_urlEncode :: String -> Bool
+--prop_urlEncode a = if " " `L.isInfixOf` a then True
+--                    else
+--                        (s2b . s2u $ a) == (b2u . s2b $ a)
+
+-- compare the urlencode of HTTP and snap
+
+test_httpEncode = assertEqual "x%20x" (s2u "x x")
+test_snapEncode = assertEqual "x+x" (b2s . b2u . s2b $  "x x")
 
 conversionTest = do
     let

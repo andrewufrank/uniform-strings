@@ -27,6 +27,7 @@ library
         text, utf8-string,
         -- for testing
 --        cgi,
+        snap-core,
         safe,
         split
     exposed-modules:
