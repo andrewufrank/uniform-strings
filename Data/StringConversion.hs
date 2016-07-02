@@ -27,7 +27,8 @@
     #-}
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 
-module Data.StringConversion (ByteString
+module Data.StringConversion (
+    ByteString
 --    , PolyString (..)  -- is this required?
 --        ,   headGuarded
             -- these are replacements for Basics
@@ -66,35 +67,29 @@ newtype MyString = MyString String deriving (Eq, Show)
 
 
 s2b :: String ->  ByteString
+-- ^ String to ByteString conversion (invertable)
 s2b = BSUTF.fromString -- seems to be s2t . t2b  - with encoding
 
-b2s ::  ByteString -> String   -- not inversable
+b2s ::  ByteString -> String
+-- ^ ByteString to String - not inversable (replacement of non-representable chars)
 b2s = BSUTF.toString
 
 s2t :: String -> T.Text
+-- ^ String to Text (invertable)
 s2t = T.pack
 
 t2s :: T.Text -> String
+-- ^ String to Text (invertable)
 t2s = T.unpack
 
 t2b :: T.Text ->  ByteString
+-- ^ Text to Bytestring (invertable)
 t2b = encodeUtf8
 
-b2t ::  ByteString -> T.Text  -- not inverse (not any arbitrary input)
+b2t ::  ByteString -> T.Text
+-- ^ ByteString to Text -- not inverse (not any arbitrary input)
 b2t = decodeUtf8
 
---testUrlEncoding :: T.Text -> Bool
-testUrlEncoding t = isJust . SN.urlDecode . t2b $ t
---urlDecode :: ByteString -> Maybe ByteString
-
-
-testByteStringUtf8 :: ByteString -> Bool
--- used for avoiding problems with the quickcheck conversions
-testByteStringUtf8 b =
-    case decodeUtf8' b of
-                -- :: ByteString -> Either UnicodeException Text
-                    Left s -> False
-                    Right t -> True
 t2u :: T.Text -> T.Text  -- url encoded
 -- ^ convert text to url (uses code from Network.HTTP, which converts space into %20)
 t2u = s2t . s2u . t2s
@@ -119,10 +114,10 @@ b2u :: ByteString ->  ByteString
 -- ^ convert url to bytestring in url (uses code from snap.core, which converts space into +)
 b2u = SN.urlEncode
 
-prop_s2t = inverts s2t t2s
-prop_t2s = inverts t2s s2t
+prop_t2s = inverts s2t t2s
+prop_s2t = inverts t2s s2t
 
-prop_u2s = inverts u2s s2u
+prop_s2u = inverts u2s s2u
 --prop_s2u = inverts s2u u2s  -- false for "\985" "\54813"
 -- u2s -- not all text are proper url encodes fro strings
 
@@ -131,7 +126,7 @@ prop_u2s = inverts u2s s2u
 --prop_s2b :: ByteString -> Bool
 --prop_s2b = inverts s2b b2s  -- fails ?
 -- b2s is total, but replaces codes not in s
-prop_b2s = inverts b2s s2b
+prop_s2b = inverts b2s s2b
 
 --prop_t2u = inverts t2u u2t -- fails for text which is not url encoding
 prop_u2ta a = if "\65535" `T.isInfixOf` a then True
@@ -144,7 +139,7 @@ prop_u2tb a = if testUrlEncoding a then inverts u2t t2u a
 
 
 --prop_t2b = inverts t2b b2t  -- no aribtrary for bytestring
-prop_b2t = inverts b2t t2b
+prop_t2b = inverts b2t t2b
 
 --test_b2tx = assertEqual "\65533" (u2t $ t2u "\65535")
 ---- maps inexactly 65535 to 65533 not a character to replacement
@@ -169,6 +164,19 @@ prop_u2b a =   maybe True ((a==). b2t) .  u2b  . b2u $ (t2b a)
 test_httpEncode = assertEqual "x%20x" (s2u "x x")
 test_snapEncode = assertEqual "x+x" (b2s . b2u . s2b $  "x x")
 
+--testUrlEncoding :: T.Text -> Bool
+testUrlEncoding t = isJust . SN.urlDecode . t2b $ t
+--urlDecode :: ByteString -> Maybe ByteString
+
+
+testByteStringUtf8 :: ByteString -> Bool
+-- used for avoiding problems with the quickcheck conversions
+testByteStringUtf8 b =
+    case decodeUtf8' b of
+                -- :: ByteString -> Either UnicodeException Text
+                    Left s -> False
+                    Right t -> True
+
 conversionTest = do
     let
         s1 = ""
@@ -176,23 +184,4 @@ conversionTest = do
     Prelude.putStrLn . unwords $  (["text a", s1, "url encoded", t2s a1] :: [String] )
     return True
 
---class PolyString s where
---    pshow :: s -> String
---    punwords :: [s] -> s
---    pputIOwords :: [s] -> ErrIO ()
---
---
---instance PolyString String where
---    pshow = id
---    punwords = unwords
---    pputIOwords = putIOwords
---
---instance PolyString T.Text where
---    pshow = show . T.unpack
---    punwords = T.unwords
---    pputIOwords = putIOwords . map t2s
---
---instance PolyString BSUTF.ByteString where
---    pshow =   show . BSUTF.toString
-----instance (IsString m) => PolyString m where
-----    pshow = show  . fromString
+

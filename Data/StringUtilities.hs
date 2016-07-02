@@ -44,9 +44,9 @@ import Data.StringConversion
 import qualified Data.List.Split as S
 import Safe
 --
-class Strings a where
--- ^ generalized functions to work on strings, text and bytestring 
+-- | generalized functions to work on strings, text and bytestring
 -- with the same semantics
+class Strings a where
 
     toString ::  a -> String
     toText :: Show a => a -> Text
@@ -84,7 +84,7 @@ class Strings a where
 
 --class Strings2 x a where
 --    show' ::  x -> a
--- replaced with toString or toText 
+-- replaced with toString or toText
 
 liftIOstrings ::MonadIO m => [String] -> m ()
 liftIOstrings   = liftIO . putStrLn. unwords
