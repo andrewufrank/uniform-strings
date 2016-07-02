@@ -33,8 +33,6 @@ module Data.StringUtilities
 
 import Test.Framework
 import Test.Invariant
---import Test.QuickCheck.Property.Functor
---import Test.QuickCheck.Property.Common
 
 import Data.Char (toUpper, toLower, isSpace)
 import Control.Monad.State (MonadIO, liftIO)
@@ -42,12 +40,14 @@ import Control.Monad.State (MonadIO, liftIO)
 import GHC.Exts( IsString(..) )
 import qualified Data.Text as T
 import Data.List as L
---import Data.List (isInfixOf, sortBy, stripPrefix, isPrefixOf)
 import Data.StringConversion
 import qualified Data.List.Split as S
 import Safe
 --
 class Strings a where
+-- ^ generalized functions to work on strings, text and bytestring 
+-- with the same semantics
+
     toString ::  a -> String
     toText :: Show a => a -> Text
     -- ^ conversion
@@ -84,6 +84,7 @@ class Strings a where
 
 --class Strings2 x a where
 --    show' ::  x -> a
+-- replaced with toString or toText 
 
 liftIOstrings ::MonadIO m => [String] -> m ()
 liftIOstrings   = liftIO . putStrLn. unwords
@@ -150,7 +151,7 @@ instance Strings ByteString  where
 --    lines' = T.lines
 --    unlines' = T.unlines
 --    append' = T.append
---    null' = T.null
+    null' = T.null . b2t
 --    toUpper' = T.toUpper
 --    toLower' = T.toLower
 --    concat' = T.concat
