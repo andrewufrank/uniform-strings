@@ -41,6 +41,7 @@ import GHC.Exts( IsString(..) )
 import qualified Data.Text as T
 import Data.List as L
 import Data.StringConversion
+import Data.Maybe
 import qualified Data.List.Split as S
 import Safe
 --
@@ -78,7 +79,7 @@ class Strings a where
     intercalate' :: a -> [a] -> Maybe a
     -- ^ splitOn' and intercalate' are inverses (see Data.SplitList)
     -- returns Nothing if second  is empty and intercalate "x" "" gives Just ""
-    -- should return Nothing if first is empty or contained in second to achievee inverse with splitOn
+    -- return Nothing if first is empty or contained in second to achievee inverse with splitOn
     splitOn' :: a -> a -> Maybe [a]
     -- ^ returns Nothing if second is empty
 
@@ -107,11 +108,14 @@ instance Strings String where
     isPrefixOf'  = isPrefixOf
     isInfixOf' = isInfixOf
     stripPrefix'  = stripPrefix
-    intercalate' x a = if null a then Nothing else Just $ L.intercalate x a
+    intercalate' s a = if null a then Nothing else
+                            if null s then Nothing
+                                else if (s `isInfixOf` (concat' a)) then Nothing
+                                    else Just $ L.intercalate s a
+    splitOn' o s= if null' o then Just []
+                        else if null' s then (Just [""]) else Just $ S.splitOn o s
     trim' = f . f
         where f = reverse . dropWhile isSpace
-    splitOn' o s= if null' o then Just []
-                        else if null' s then Nothing else Just $ S.splitOn o s
 
 --instance Strings2 String String where
 --    show' =  id
@@ -135,43 +139,43 @@ instance Strings T.Text where
     isPrefixOf' = T.isPrefixOf
     isInfixOf' = T.isInfixOf
     stripPrefix' = T.stripPrefix
-    intercalate' x a  = if null a then Nothing else Just $  T.intercalate x a
-    trim' = s2t . trim' . t2s
+    intercalate' s a = if null a then (Nothing :: Maybe Text) else
+                            if null' s then Nothing
+                                else if (s `isInfixOf'` (concat' a)) then Nothing
+                                    else Just $ T.intercalate s a
     splitOn' o s= if null' o then Just []
-                        else if null' s then Nothing else Just $ T.splitOn o s
+                        else if null' s then (Just [""]) else Just $ T.splitOn o s
+    trim' = s2t . trim' . t2s
+--    splitOn' o s= if null' o then Just []
+--                        else if null' s then Nothing else Just $ T.splitOn o s
 
 instance Strings ByteString  where
 -- doubtful - what is possible without error? t2b . b2t is not id
+--  all achieved by transforming the input to text and operating on this.
+-- result cannot be translated back
+-- alternatively used Data.ByteString.Char8 -- which assumes that only 8 bit char
+
     toString = b2s
     toText = b2t
 
     putIOwords = liftIOstrings . map b2s
-    unwords' = t2b . T.unwords . map b2t
---    words' =  T.words
---    lines' = T.lines
---    unlines' = T.unlines
---    append' = T.append
-    null' = T.null . b2t
---    toUpper' = T.toUpper
---    toLower' = T.toLower
---    concat' = T.concat
---    isPrefixOf' = T.isPrefixOf
-    isInfixOf' t s  = T.isInfixOf (b2t s) (b2t t)
---    stripPrefix' = T.stripPrefix
-    intercalate' x a  = if null a then Nothing
-            else Just . t2b $  T.intercalate (b2t x) (map b2t a)
-    trim' = s2b . trim' . b2s
-    splitOn' o s= if null' o then Just []
-                        else if null' s then Nothing else Just . map t2b $ T.splitOn (b2t o) (b2t s)
+    unwords' = t2b . unwords' . map b2t
+    words' =  map t2b .  words' . b2t
+    lines' = map t2b . lines' . b2t
+    unlines' =  t2b . unlines' . map b2t
 
---instance Strings2 Text Text where
---    show' =  id
---instance  Strings2 String Text where
---    show' = s2t
---instance  Strings2 Text String where
---    show' = t2s
---instance (Show x ) => Strings2 x Text where
---    show' = s2t . show
+    append' a b = t2b . append' (b2t a) $ b2t b
+    null' = T.null . b2t
+    toUpper' = t2b . toUpper' . b2t
+    toLower' = t2b . toLower' . b2t
+    concat' = t2b . concat' . map b2t
+    isPrefixOf' t s  = isPrefixOf' (b2t s) (b2t t)
+    isInfixOf' t s  = isInfixOf' (b2t s) (b2t t)
+    stripPrefix' p s = fmap t2b $  stripPrefix' (b2t p)  (b2t s)
+    intercalate' x a  =  fmap t2b  (intercalate' (b2t x) (map b2t a))
+    splitOn' o s = fmap (fmap t2b) $ splitOn' (b2t o) (b2t s)
+    trim' = s2b . trim' . b2s
+
 
 instance Strings Int where
     toString = show
@@ -258,8 +262,11 @@ prop_isPrefixOf a b = isPrefixOf' (s2t a) (s2t b) == isPrefixOf' a b
 prop_isInfixOf' a b = isInfixOf' (s2t a) (s2t b) == isInfixOf' a b
 prop_stripPrefix'f a b = stripPrefix' (s2t a) (s2t b) == fmap s2t  (stripPrefix' a b)
 
-prop_intercalate :: String -> [String] -> Bool
-prop_intercalate a b = intercalate' (s2t a) (map s2t b) ==  fmap s2t (intercalate' a b)
+-- establish inverse for strings
+prop_inverse_intercalate :: String -> [String] -> Bool
+prop_inverse_intercalate s a = maybe True (isJust . fmap (a==) . splitOn' s) ( intercalate' s a )
+--prop_intercalate :: String -> [String] -> Bool
+--prop_intercalate a b = intercalate' (s2t a) (map s2t b) ==  fmap s2t (intercalate' a b)
 
 prop_trim = trim' . s2t  <=> s2t . trim'
 prop_trim2 :: String -> Bool
@@ -267,7 +274,8 @@ prop_trim2 = idempotent trim'
 prop_trim3 :: Text -> Bool
 prop_trim3 = idempotent trim'
 
-prop_splitOn2 a b = splitOn' (s2t a) (s2t b)  == fmap (map s2t) (splitOn' a b)
+prop_splitOn_text a b = splitOn' (s2t a) (s2t b)  == fmap (map s2t) (splitOn' a b)
+prop_splitOn_bytestring a b = splitOn' (s2b a) (s2b b)  == fmap (map s2b) (splitOn' a b)
 
 prop_splitOn_intercalate :: String -> [String] -> Bool
 prop_splitOn_intercalate a b =

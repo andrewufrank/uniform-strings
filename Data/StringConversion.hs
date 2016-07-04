@@ -164,12 +164,15 @@ prop_u2b a =   maybe True ((a==). b2t) .  u2b  . b2u $ (t2b a)
 test_httpEncode = assertEqual "x%20x" (s2u "x x")
 test_snapEncode = assertEqual "x+x" (b2s . b2u . s2b $  "x x")
 
---testUrlEncoding :: T.Text -> Bool
+testUrlEncoding :: T.Text -> Bool
 testUrlEncoding t = isJust . SN.urlDecode . t2b $ t
+-- ^ test wheter a given text does not contain characters not
+-- permitted when url encoding  using
 --urlDecode :: ByteString -> Maybe ByteString
 
 
 testByteStringUtf8 :: ByteString -> Bool
+-- ^ test whether a byte string is valid utf8 encoded
 -- used for avoiding problems with the quickcheck conversions
 testByteStringUtf8 b =
     case decodeUtf8' b of
@@ -177,11 +180,17 @@ testByteStringUtf8 b =
                     Left s -> False
                     Right t -> True
 
+-- | url encoding of space is not always handled the same way (+ or %20)
 conversionTest = do
     let
-        s1 = ""
-        a1 = t2u s1
-    Prelude.putStrLn . unwords $  (["text a", s1, "url encoded", t2s a1] :: [String] )
-    return True
+        s1 = " " :: String
+        a1 = s2u s1 :: String
+    Prelude.putStrLn . unwords $  (["string space:", s1, "gives url encoded",  a1] :: [String] )
+
+    let b2 = s2b s1
+        a2  = b2u b2
+    Prelude.putStrLn . unwords $  (["bytestring space:", show b2
+                , "gives url encoded", show  $ a2] :: [String] )
+    return  (s1 == u2s a1 || (maybe False (b2 ==) $  u2b a2))
 
 
