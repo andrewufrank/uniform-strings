@@ -5,7 +5,12 @@
 --
 -- | a module with a class for strings, sucht that the normal ops are
 --  all polymorphic for string and text (and total)
+-- the string (i.e. [Char]) functions are the semantic definitions,
+-- the other implementation are tested against these.
+-- except intercalate, which returns Maybe
+-- (the corresponding restrictions for the unlines and unwords functions are not enforced)
 --
+-- performance can be improved by using the "native" functions
 -- could be expanded
 -----------------------------------------------------------------------------
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
@@ -183,30 +188,6 @@ instance Strings Int where
 instance Strings Bool where
     toString = show
 
-stringTest :: IO Bool
-stringTest = do
-    let
-        r1 = splitOn'  (""::String) ("a"::String)   :: Maybe [String]
-        r2 = splitOn'  (""::Text) ("a"::Text)  :: Maybe [Text]
-        v1 = S.splitOn  (""::String) ("a"::String)   ::  [String]
---        v2 = T.splitOn   (""::Text) ("a"::Text)  ::  [Text]  -- produces error
-        w1 = S.splitOn  ("x"::String) ("a"::String)   ::  [String]
-        w2 = T.splitOn   ("x"::Text) ("a"::Text)  ::  [Text]
-        c1 = intercalate  ("a"::String) ([]::[String])   :: String
-        c2 = T.intercalate  ("a"::Text) ([]::[Text])   ::Text
-        d1 = intercalate' ("a"::String) ([]::[String])   ::Maybe String
-        d2 = intercalate' ("a"::Text) ([]::[Text])   ::Maybe Text
-    putIOwordsS ["splitOn on empty input \nfor string", show r1]
-    putIOwords ["\nfor text", show  r2, "--"]
-    putIOwordsS ["S.splitOn on empty input \nfor string", show v1] --  ["","a"]
---    putIOwords ["\nT. for text", show  v2, "--"] -- produces error
-    putIOwordsS ["S.splitOn on x input \nfor string", show w1] --  ["","a"]
-    putIOwords ["\nT. for text", show  w2, "--"] -- produces error
-    putIOwords ["intercalate for string",  c1, "-"]
-    putIOwords ["intercalate for text",   t2s c2, "-"]
-    putIOwords ["intercalate' for string", show  c1, "-"]
-    putIOwords ["intercalate' for text",   show  c2, "-"]
-    return True
 
 
 putIOwordsT ::  MonadIO m => [T.Text] -> m ()
@@ -235,11 +216,20 @@ prop_unwords =     unwords' . map s2t  <=>  s2t . unwords
 
 prop_words =  words' . s2t <=> map s2t . words
 
+-- not invertible for [""] and not when strings include " "
+-- same problem as intervalate!
+-- same problem for lines and unlines
+--prop_wordsInverse :: [String] -> Bool
+--prop_wordsInverse = inverts words' unwords'
+
 prop_unlines = unlines' . map s2t <=>  s2t . unlines
 prop_lines = lines' . s2t <=> map s2t . lines
 
 prop_append :: String -> String -> Bool
 prop_append a b = append' (s2t a) (s2t b) == s2t  (append a  b)
+
+prop_append2 :: String -> String -> Bool
+prop_append2 a b = append a b == reverse (append (reverse b) (reverse a))
 
 prop_null = null' . s2t <=> null
 -- prop_toUpper = toUpper' . s2t <=> s2t . toUpper'  -- failed for "\223" sz ligature
@@ -261,6 +251,9 @@ prop_toUpper2 = idempotent toUpper'
 prop_isPrefixOf a b = isPrefixOf' (s2t a) (s2t b) == isPrefixOf' a b
 prop_isInfixOf' a b = isInfixOf' (s2t a) (s2t b) == isInfixOf' a b
 prop_stripPrefix'f a b = stripPrefix' (s2t a) (s2t b) == fmap s2t  (stripPrefix' a b)
+
+prop_stripPrefix2 :: String -> String -> Bool
+prop_stripPrefix2 a b = stripPrefix' a (append' a b) == Just b
 
 -- establish inverse for strings
 prop_inverse_intercalate :: String -> [String] -> Bool
@@ -286,4 +279,29 @@ prop_splitOn_intercalate a b =
 
 test_splitOn = assertBool ( Just [] == splitOn' [] ("a"::String))
 test_b2s = assertEqual ("a"::String) (toString . t2b $ ("a" :: Text))
+
+stringTest :: IO Bool
+stringTest = do
+    let
+        r1 = splitOn'  (""::String) ("a"::String)   :: Maybe [String]
+        r2 = splitOn'  (""::Text) ("a"::Text)  :: Maybe [Text]
+        v1 = S.splitOn  (""::String) ("a"::String)   ::  [String]
+--        v2 = T.splitOn   (""::Text) ("a"::Text)  ::  [Text]  -- produces error
+        w1 = S.splitOn  ("x"::String) ("a"::String)   ::  [String]
+        w2 = T.splitOn   ("x"::Text) ("a"::Text)  ::  [Text]
+        c1 = intercalate  ("a"::String) ([]::[String])   :: String
+        c2 = T.intercalate  ("a"::Text) ([]::[Text])   ::Text
+        d1 = intercalate' ("a"::String) ([]::[String])   ::Maybe String
+        d2 = intercalate' ("a"::Text) ([]::[Text])   ::Maybe Text
+    putIOwordsS ["splitOn on empty input \nfor string", show r1]
+    putIOwords ["\nfor text", show  r2, "--"]
+    putIOwordsS ["S.splitOn on empty input \nfor string", show v1] --  ["","a"]
+--    putIOwords ["\nT. for text", show  v2, "--"] -- produces error
+    putIOwordsS ["S.splitOn on x input \nfor string", show w1] --  ["","a"]
+    putIOwords ["\nT. for text", show  w2, "--"] -- produces error
+    putIOwords ["intercalate for string",  c1, "-"]
+    putIOwords ["intercalate for text",   t2s c2, "-"]
+    putIOwords ["intercalate' for string", show  c1, "-"]
+    putIOwords ["intercalate' for text",   show  c2, "-"]
+    return True
 
