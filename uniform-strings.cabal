@@ -1,41 +1,46 @@
 name: uniform-strings
-version: 0.0.7
+version: 0.0.9.2
 cabal-version: >=1.22
 build-type: Simple
 license: GPL
 license-file: GPL_3
 maintainer: Andrew U. Frank <andrewufrank@gmail.com>
 author: Andrew Frank
-category: Data, Text
+category: Data, Text, Uniform
 synopsis: manipulate and convert strings of characters uniformly and consistently
 description: reduce complexity of Haskell by providing a set of uniformly named
     of conversion routines between String, Text, ByteString and urlEncoding
     with the most important text manipulation functions for string and text
     where the semantic is the same (tested with quickcheck).
+    0.0.9 radical reduction to use Text only
 
 source-repository head
     type: git
-    location: https://github.com/andrewufrank/uniform-strings.git
+--    location: https://github.com/andrewufrank/uniform-strings.git
 
 library
     build-depends:
-        HTTP, base >=4.8 && <= 5,
-        mtl,
-        HTF, test-invariant,
-        quickcheck-text,
+        base >=4.8 && <= 5,
+        network-uri,
+        monads-tf,
+        HTF,
         bytestring,
-        text, utf8-string,
+        text,
+        text-icu,
         -- for testing
---        cgi,
+        test-invariant,
+        quickcheck-text,
+        numeric-prelude,
         snap-core,
         safe,
+        vector,
         split
     exposed-modules:
-        Data.Strings
+        Uniform.Strings
     -- for testing, afterwards include in test-suite
-        Data.StringConversion
-        Data.StringUtilities
-        Data.StringInfix
+        Uniform.StringConversion
+        Uniform.StringUtilities
+        Uniform.StringInfix
 
     exposed: True
     buildable: True
@@ -53,13 +58,10 @@ Test-Suite stringTestAuto
     other-modules:
 
 executable stringtest
-    build-depends:  base -any
-        , HTF
---                    bytestring -any, mtl,
---                   text -any, utf8-string -any
-       , uniform-strings
---       , basics -- must not be included, gives dependency issue
-    main-is: Main.hs
-    buildable: True
-    default-language: Haskell2010
-    hs-source-dirs: src
+   build-depends:  base -any
+       , HTF
+      , uniform-strings
+   main-is: UniformStringTest.hs
+   buildable: True
+   default-language: Haskell2010
+   hs-source-dirs: src

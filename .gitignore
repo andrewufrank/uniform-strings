@@ -1,4 +1,6 @@
 dist
+dist-newstyle
+.stack-work
 .HTF
 \#*#
 *~
@@ -8,3 +10,8 @@ dist
 */*.lkshw
 unused.txt
 *.autosave*
+cabal.project.local
+ideaHaskellLib
+out
+testForLitTextdist
+
