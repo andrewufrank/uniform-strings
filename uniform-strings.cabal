@@ -16,7 +16,7 @@ description: reduce complexity of Haskell by providing a set of uniformly named
 
 source-repository head
     type: git
---    location: https://github.com/andrewufrank/uniform-strings.git
+    location: https://github.com/andrewufrank/uniform-strings.git
 
 library
     build-depends:
@@ -26,14 +26,14 @@ library
         HTF,
         bytestring,
         text,
-        text-icu,
+        text-icu >=0.7.0.1,
         -- for testing
         test-invariant,
         quickcheck-text,
         numeric-prelude,
         snap-core,
         safe,
-        vector,
+--        vector,
         split
     exposed-modules:
         Uniform.Strings

@@ -52,7 +52,7 @@ import           Data.Char                (isSpace, toLower, toUpper)
 import           Text.Printf              (PrintfArg, PrintfType, printf)
 
 import           Data.List                as L
-import qualified Data.Vector              as V
+--import qualified Data.Vector              as V
 import           GHC.Exts                 (IsString (..))
 
 import qualified Data.List.Split          as S
@@ -398,8 +398,8 @@ instance (NiceStrings a, NiceStrings b) => NiceStrings (a,b) where
     shownice (a,b) = unwords' [shownice a, shownice b]
 instance (NiceStrings a) => NiceStrings [a] where
     shownice as = concat' . catMaybes $ [intercalate' "," .  map shownice $ as, Just "\n"]
-instance (NiceStrings a) => NiceStrings (V.Vector a) where
-    shownice  = unwords' . map shownice . V.toList
+--instance (NiceStrings a) => NiceStrings (V.Vector a) where
+--    shownice  = unwords' . map shownice . V.toList
 
 
 -- tests that text operations have same semantics than string2maybe    putIOwords  =liftIOstrings
