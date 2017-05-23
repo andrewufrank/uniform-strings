@@ -23,9 +23,6 @@ module Uniform.StringInfix  where
 
 import           GHC.Exts                 (IsString (..))
 import           Test.Framework
--- import qualified Data.Text as T
--- import Data.List as L
---import Data.List (isInfixOf, sortBy, stripPrefix, isPrefixOf)
 import           Uniform.StringConversion
 import           Uniform.StringUtilities
 

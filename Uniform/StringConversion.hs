@@ -545,3 +545,13 @@ test_latin2 = do
     assertEqual a c
 --    assertEqual   d  uni
     putIOwords ["latin2 test end" ]
+
+-- test_fromJust_givesError = assertEqual 1 (fromJustNote' "test_fromJust" (Nothing ::Maybe Int))
+
+-- test_fromJust_old= assertEqual 1 (fromJustNote "test_fromJust" (Nothing ::Maybe Int))
+
+
+-- -- todo error or strings
+-- fromJustNote' msg mb = case mb of
+--                             Just r -> r
+--                             Nothing -> errorT ["fromJust at ", msg , "with arg", showT mb]
