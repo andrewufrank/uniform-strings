@@ -32,7 +32,7 @@ module Uniform.StringConversion (
     , s2t, t2s
     -- uses UTF8 as encoding in ByteString
     -- urlencode is always represented the same as the input
-    , Text, BSUTF
+    , Text (..), BSUTF
     , b2bu, bu2b, bu2s, bu2t, t2bu, s2bu
     , s2bl -- lazy bytestring
     , bb2t, bb2s  -- conversion with error if not UTF8
