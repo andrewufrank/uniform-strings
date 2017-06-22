@@ -191,6 +191,26 @@ instance CharChains2 Double String where
     show'  = show
 instance CharChains2 Double Text where
     show'  = s2t . show
+instance CharChains2 Text Text where
+    -- avoid the "" surrounding show text
+    show'  = id
+instance CharChains2 String Text where
+    show'  = s2t
+instance CharChains2 Text String where
+    -- avoid the "" surrounding show text
+    show'  = t2s
+instance CharChains2 String String where
+    show'  = id
+
+instance (Show a, Show b) => CharChains2 (a,b) String where
+    show' (a,b) = show (a,b)
+instance (Show a, Show b) => CharChains2 (a,b) Text where
+    show' (a,b) = s2t $ show (a,b)
+
+instance (Show a) => CharChains2 [a] String where
+    show' s = show s
+instance (Show a) => CharChains2 [a] Text where
+    show' s = s2t . show $ s
 
 instance CharChains String where
     toString = id
@@ -487,6 +507,9 @@ prop_splitOn_intercalate a b =
 test_splitOn = assertBool ( Just [] == splitOn' [] ("a"::String))
 test_bu2s = assertEqual ("a"::String) (toString . t2bu $ ("a" :: Text))
 
+--test_show'_forText = assertEqual ("a"::String) (show' ("a"::String))
+-- gives overlapping with [a]
+test_show'_forString = assertEqual ("a"::Text) (show' ("a"::Text))
 
 --stringTest :: IO Bool
 --stringTest = do
