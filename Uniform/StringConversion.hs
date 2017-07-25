@@ -34,7 +34,7 @@ module Uniform.StringConversion (
     -- urlencode is always represented the same as the input
     , Text (..), BSUTF
     , b2bu, bu2b, bu2s, bu2t, t2bu, s2bu
-    , s2bl -- lazy bytestring
+    , b2bl, bl2b -- lazy bytestring
     , bb2t, bb2s  -- conversion with error if not UTF8
     , s2latin, t2latin, latin2t, latin2s -- conversion to the latin1 encoding
     , BSlat, s2lat, lat2s, t2lat, lat2t
@@ -179,8 +179,11 @@ s2bu = BSUTF . encodeUtf8 . s2t
 s2b :: String -> ByteString
 s2b = t2b . s2t
 
-s2bl :: String -> Lazy.ByteString
-s2bl = Lazy.fromStrict . s2b
+b2bl :: ByteString -> Lazy.ByteString
+b2bl = Lazy.fromStrict
+
+bl2b ::  Lazy.ByteString -> ByteString
+bl2b = Lazy.toStrict
 
 b2s :: ByteString -> Maybe String
 b2s = fmap t2s . b2t
