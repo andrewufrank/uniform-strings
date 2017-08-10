@@ -48,7 +48,7 @@ import           Test.Invariant           as Rule
 -- probably better just to move these module to package uniform-algebra
 -- but there is so far only zero
 
-import           Data.Char                (isSpace, toLower, toUpper)
+import           Data.Char                (isSpace, isLower, toLower, toUpper)
 import           Text.Printf              (PrintfArg, PrintfType, printf)
 
 import           Data.List                as L
@@ -105,6 +105,9 @@ class (Eq a) => CharChains a where
     append = append' -- without ' to maintain old code
 
     null' :: a -> Bool
+--    isLowerCase :: a -> Bool
+--    isSpaceChar :: a -> Bool
+-- operates on char, would be allLower?
     mknull :: a
 --    -- to avoid a dependency on zero from algebra
 
@@ -222,6 +225,7 @@ instance CharChains String where
     lines' = lines
     append' = (++)
     null' = null
+--    isLowerCase = isLower
     mknull = ""
     toUpper' = map toUpper
     toLower' = map toLower
