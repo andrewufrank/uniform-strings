@@ -27,7 +27,7 @@
 {-# OPTIONS_GHC -w #-}
 
 module Uniform.StringConversion (
-    ByteString
+    ByteString, LayzByteString
     , s2b, b2s, b2t,   t2b, t2u,  s2u
     , s2t, t2s
     -- uses UTF8 as encoding in ByteString
@@ -99,6 +99,7 @@ prop_t2s = inverts s2t t2s
 prop_s2t :: String -> Bool
 prop_s2t = inverts t2s s2t
 
+type LayzByteString = Lazy.ByteString
 
 -- ByteString -- Text
 -- bytestring can contain any bitcombinations (binary)
