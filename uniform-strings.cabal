@@ -34,7 +34,8 @@ library
         snap-core,
         safe,
 --        vector,
-        split
+        split,
+        zlib
     exposed-modules:
         Uniform.Strings
     -- for testing, afterwards include in test-suite

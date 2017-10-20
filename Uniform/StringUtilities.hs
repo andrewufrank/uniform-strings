@@ -64,6 +64,7 @@ import           Safe
 -- import           Uniform.Error            (fromJustNote)
 -- not possible, because Error is based on String
 import           Uniform.StringConversion
+import qualified Data.ByteString.Lazy as Lazy
 --
 -- | generalized functions to work on chains of characters
 -- (i.e. strings, text, url encoded, bytestring), text and bytestring
@@ -328,6 +329,9 @@ instance CharChains Text where
           af = filterChar cond a :: Text
     nubChar = s2t . nub .t2s
     take' = T.take
+
+instance CharChains LazyByteString where
+    append' = Lazy.append
 
 unwordsT :: [Text] -> Text
 unwordsT = T.unwords  -- to fix types for overloaded strings
