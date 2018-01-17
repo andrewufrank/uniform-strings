@@ -468,7 +468,7 @@ findNonLatinChars = filter (\c -> conv2latinChar c == '\SUB')
 
 findNonLatinCharsT :: Text -> Text
 -- ^ the result is a string of all the characters not in the latin1 encoding
-findNonLatinCharsT = s2t . filter (\c -> conv2latinChar c /= c) . t2s
+findNonLatinCharsT = s2t . findNonLatinChars . t2s
 
 prop_latin2s :: ByteString -> Bool
 prop_latin2s   = inverts s2latin latin2s -- maybe True ((b ==). latin2s) (s2latin b)

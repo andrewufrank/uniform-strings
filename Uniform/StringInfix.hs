@@ -26,7 +26,7 @@ import           Test.Framework
 import           Uniform.StringConversion
 import           Uniform.StringUtilities
 
--- | a synonym for append
+-- | a synonym for append for text only
 --(<>) :: (CharChains s) => s -> s -> s
 (<>) :: Text -> Text -> Text
 (<>) = append'

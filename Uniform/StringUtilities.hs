@@ -37,7 +37,7 @@ module Uniform.StringUtilities
     , maybe2string
     , htf_thisModulesTests
     , showList'
-    , T.toTitle, toLowerStart   -- for types and properties in RDF
+    , T.toTitle, toLowerStart, toUpperStart  -- for types and properties in RDF
     )
     where
 
@@ -86,6 +86,10 @@ showList' = unlines' . map showT
 toLowerStart :: Text -> Text
 -- ^ convert the first character to lowercase - for Properties in RDF
 toLowerStart t = (toLower . T.head $ t ) `T.cons` (T.tail t)
+
+toUpperStart :: Text -> Text
+-- ^ convert the first character to Uppercase - for  PosTags in Spanish
+toUpperStart t = (toUpper . T.head $ t ) `T.cons` (T.tail t)
 
 class (Eq a) => CharChains a where
 --    {-# MINIMAL   #-}
@@ -136,6 +140,8 @@ class (Eq a) => CharChains a where
     lengthChar :: a -> Int
     nubChar :: a -> a
     take' :: Int -> a -> a
+    -- add a splitAt or dropN function
+    -- repalceAll function from POS
     intercalate' :: a -> [a] -> Maybe a
     -- ^ splitOn' and intercalate' are inverses (see Data.SplitList)
     -- returns Nothing if second  is empty and intercalate "x" "" gives Just ""
