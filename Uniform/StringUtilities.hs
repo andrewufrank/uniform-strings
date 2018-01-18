@@ -37,7 +37,8 @@ module Uniform.StringUtilities
     , maybe2string
     , htf_thisModulesTests
     , showList'
-    , T.toTitle, toLowerStart, toUpperStart  -- for types and properties in RDF
+    , T.toTitle
+    , toLowerStart, toUpperStart  -- for types and properties in RDF
     )
     where
 
