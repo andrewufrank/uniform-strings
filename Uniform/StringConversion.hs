@@ -460,7 +460,7 @@ conv2latinChar c = if ord c < 256 then c else
         '\x2018' -> '\''
         '\x2019' -> '\''
 
-        _ -> '\SUB'    -- could be another char ? \SUB
+        _ -> c -- '\SUB'    -- could be another char ? \SUB
 
 findNonLatinChars :: String -> String
 -- ^ the result is a string of all the characters not in the latin1 encoding

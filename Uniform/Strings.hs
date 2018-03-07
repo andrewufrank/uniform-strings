@@ -30,6 +30,7 @@ module Uniform.Strings (
     , wordwrap
     , NiceStrings (..)
     , htf_thisModulesTests
+    , IsString (..)
 --    , wordsT,  concatT, showT
 --    , unlinesT, unwordsT,
 --    , stringTest
@@ -38,7 +39,7 @@ module Uniform.Strings (
 
 import           Test.Framework
 import           Uniform.StringConversion
-import           Uniform.StringInfix      
+import           Uniform.StringInfix
 -- hidde when conflict in use                    hiding ((<.>), (</>))
 import           Uniform.StringUtilities
 --if these string ops are desired (and not the usual ones from fileio
