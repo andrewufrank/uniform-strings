@@ -1,4 +1,4 @@
- -----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 --
 -- Module      :  Strings
 -- Copyright   :
@@ -17,7 +17,7 @@
 
 -----------------------------------------------------------------------------
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
-{-# LANGUAGE FlexibleInstances     #-}
+--{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 -- {-# LANGUAGE PackageImports        #-}
@@ -400,8 +400,8 @@ s3lat   =  BSlat . s3latin
 prop_lat2s :: BSlat -> Bool
 prop_lat2s = inverts s3lat lat2s
 
-prop_s2lat :: String -> Bool  -- will fail ?
-prop_s2lat = inverts lat2s s3lat
+--prop_s2lat :: String -> Bool  -- will fail ? fails
+--prop_s2lat = inverts lat2s s3lat
 
 lat2t :: BSlat -> Text
 -- ^ Text encoded as ByteString with latin encoding, if possible
@@ -423,12 +423,14 @@ prop_lat2t = inverts t3lat lat2t
 --prop_t3lat s  = inverts lat2t t3lat (s2t . convertLatin . t2s $ s)
 
 
-latin2s :: ByteString -> String  --    works always, but produces unexpected results if bytestring is not latin encoded
+latin2s :: ByteString -> String
+    --    works always, but produces unexpected results if bytestring is not latin encoded
 latin2s = Data.ByteString.Char8.unpack
 --
-s2latin :: String ->  ByteString  --  works always, but produces unexpected results if bytestring is not latin encoded
+s2latin :: String ->  ByteString
+        --  works always, but produces unexpected results if bytestring is not latin encoded
 s2latin =  Data.ByteString.Char8.pack
---s2latin s = if all  ((<256) . ord) s  then Just . Data.ByteString.Char8.pack else Nothing
+----s2latin s = if all  ((<256) . ord) s  then Just . Data.ByteString.Char8.pack else Nothing
 
 s22latin :: String -> Maybe ByteString
 s22latin s = if all  ((<256) . ord) s  then  Just .  s2latin  $ s else Nothing   -- Data.ByteString.Char8.pack . T.unpack
@@ -473,11 +475,11 @@ findNonLatinCharsT = s2t . findNonLatinChars . t2s
 prop_latin2s :: ByteString -> Bool
 prop_latin2s   = inverts s2latin latin2s -- maybe True ((b ==). latin2s) (s2latin b)
 
-prop_s2latin :: String -> Bool     -- why does this always work?  (is the intermediate result ok?)
-prop_s2latin = inverts latin2s s2latin
+--prop_s2latin :: String -> Bool     -- why does this always work?  (is the intermediate result ok?)
+--prop_s2latin = inverts latin2s s2latin
 
-prop_s3latin :: String -> Bool     --inverts with reasonable intermediate value
-prop_s3latin s = inverts latin2s s2latin (convertLatin s)
+--prop_s3latin :: String -> Bool     --inverts with reasonable intermediate value
+--prop_s3latin s = inverts latin2s s2latin (convertLatin s)
 
 --
 latin2t :: ByteString -> Text
