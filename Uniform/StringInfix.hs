@@ -28,8 +28,8 @@ import           Uniform.StringUtilities
 
 -- | a synonym for append for text only
 --(<>) :: (CharChains s) => s -> s -> s
-(<>) :: Text -> Text -> Text
-(<>) = append'
+--(<>) :: Text -> Text -> Text
+--(<>) = append'
 
 
 -- (<:>), (<+>), (<->), (</>), spitz
