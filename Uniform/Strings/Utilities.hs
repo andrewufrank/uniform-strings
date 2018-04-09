@@ -121,7 +121,10 @@ instance ListForms BSUTF where
     appendTwo a b =  t2bu . appendTwo  (bu2t a) $ bu2t b
     mkOne =  t2bu . T.singleton
 
-class (ListForms a, Eq a) => CharChains a where
+instance Zeros BSUTF where
+    zero = t2bu ""
+
+class (Zeros a, ListForms a, Eq a) => CharChains a where
 --    {-# MINIMAL   #-}
 
     toString ::  a -> String
@@ -142,6 +145,7 @@ class (ListForms a, Eq a) => CharChains a where
 --    append  append'  -- without ' to maintain old code
 
     null' :: a -> Bool
+    null' = isZero
 --    isLowerCase :: a -> Bool
 --    isSpaceChar :: a -> Bool
 -- operates on char, would be allLower?
