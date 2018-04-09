@@ -17,12 +17,16 @@
 -- it may be useful to have more than one show like operation
 -----------------------------------------------------------------------------
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE FlexibleInstances         #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE UndecidableInstances      #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE OverloadedStrings
+    , RecordWildCards     #-}
+
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 {-# OPTIONS_GHC -w #-}
 
@@ -41,6 +45,9 @@ module Uniform.StringUtilities
     , toLowerStart, toUpperStart  -- for types and properties in RDF
     )
     where
+
+import Uniform.Zero
+import Uniform.ListForm
 
 import           Algebra.Laws             as Law
 import           Test.Framework
@@ -92,7 +99,30 @@ toUpperStart :: Text -> Text
 -- ^ convert the first character to Uppercase - for  PosTags in Spanish
 toUpperStart t = (toUpper . T.head $ t ) `T.cons` (T.tail t)
 
-class (Eq a) => CharChains a where
+--instance Zeros String where zero = (""::String)
+instance Zeros Text where zero = (""::Text)
+
+instance ListForms Text where
+    type LF Text = Char
+    appendTwo = T.append
+    mkOne = T.singleton
+
+instance ListForms String where
+    type LF String = Char
+    appendTwo = (++)
+    mkOne = show
+
+instance ListForms LazyByteString where
+    type LF LazyByteString = Char
+    appendTwo = Lazy.append
+    mkOne = b2bl . t2b . T.singleton
+
+instance ListForms BSUTF where
+    type LF BSUTF = Char
+    appendTwo a b =  t2bu . appendTwo  (bu2t a) $ bu2t b
+    mkOne =  t2bu . T.singleton
+
+class (ListForms a, Eq a) => CharChains a where
 --    {-# MINIMAL   #-}
 
     toString ::  a -> String
@@ -106,9 +136,11 @@ class (Eq a) => CharChains a where
     lines' :: a -> [a]
 --    punwords :: [a] -> s
     toText = s2t . show
-    append', append  :: a -> a -> a
+    append', append   :: a -> a -> a  -- duplication?
+    append = appendTwo
+    append' = appendTwo
 
-    append = append' -- without ' to maintain old code
+--    append  append'  -- without ' to maintain old code
 
     null' :: a -> Bool
 --    isLowerCase :: a -> Bool
@@ -231,7 +263,7 @@ instance CharChains String where
     words' = words
     unlines' = unlines
     lines' = lines
-    append' = (++)
+--    append' = (++)
     null' = null
 --    isLowerCase = isLower
     mknull = ""
@@ -295,8 +327,8 @@ instance CharChains Text where
     words' =  T.words
     lines' = T.lines
     unlines' = T.unlines
-    append' = T.append
-    null' = T.null
+--    append' = T.append
+--    null' = T.null
     mknull = T.empty
     toUpper' = T.toUpper
     toLower' = T.toLower
@@ -337,8 +369,8 @@ instance CharChains Text where
     nubChar = s2t . nub .t2s
     take' = T.take
 
-instance CharChains LazyByteString where
-    append' = Lazy.append
+--instance CharChains LazyByteString where
+--    append' = Lazy.append
 
 unwordsT :: [Text] -> Text
 unwordsT = T.unwords  -- to fix types for overloaded strings
@@ -351,7 +383,8 @@ concatT = concat'
 
 --showT ::(CharChains2 a Text) =>  a -> Text
 --showT = show'
-showT = s2t . show
+showT t = s2t c
+    where c = show t :: String
 --
 prop_zero_mknull_text :: Text -> Bool
 prop_zero_mknull_text = prop_zero_mknull
@@ -381,7 +414,7 @@ instance CharChains BSUTF  where
     lines' = map t2bu . lines' . bu2t
     unlines' =  t2bu . unlines' . map bu2t
 
-    append' a b = t2bu . append' (bu2t a) $ bu2t b
+--    append' a b = t2bu . append' (bu2t a) $ bu2t b
     null' = T.null . bu2t
     toUpper' = t2bu . toUpper' . bu2t
     toLower' = t2bu . toLower' . bu2t
@@ -406,8 +439,10 @@ instance CharChains BSUTF  where
 unlinesT :: [Text] -> Text
 unlinesT = unlines'
 
+sortCaseInsensitive :: (Ord a, CharChains a) => [a] -> [a]
 sortCaseInsensitive = sortBy cmpCaseInsensitive
 
+cmpCaseInsensitive :: (Ord a, CharChains a) => a -> a -> Ordering
 cmpCaseInsensitive s1 s2 =  compare  (  toLower' s1) (  toLower' s2)
 
 maybe2string :: (IsString s) =>  Maybe s -> s

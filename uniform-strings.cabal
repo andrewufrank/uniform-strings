@@ -36,6 +36,7 @@ library
 --        vector,
         split,
         zlib
+        , uniform-algebras
     exposed-modules:
         Uniform.Strings
     -- for testing, afterwards include in test-suite
