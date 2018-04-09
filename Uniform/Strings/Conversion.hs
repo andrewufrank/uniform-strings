@@ -16,7 +16,6 @@
 -- functions used from other packages (with String interfaces)
 
 -----------------------------------------------------------------------------
-{-# OPTIONS_GHC -F -pgmF htfpp #-}
 --{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -26,27 +25,26 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -w #-}
 
-module Uniform.StringConversion (
+module Uniform.Strings.Conversion (
     ByteString, LazyByteString
     , s2b, b2s, b2t,   t2b, t2u,  s2u
     , s2t, t2s
     -- uses UTF8 as encoding in ByteString
     -- urlencode is always represented the same as the input
-    , Text (..), BSUTF
+    , Text (..), BSUTF (..), URL (..), URLform
+
     , b2bu, bu2b, bu2s, bu2t, t2bu, s2bu
+    , u2b, u2t, b2uf, u2s, b2u
     , b2bl, bl2b -- lazy bytestring
     , bb2t, bb2s  -- conversion with error if not UTF8
     , s2latin, t2latin, latin2t, latin2s -- conversion to the latin1 encoding
-    , BSlat, s2lat, lat2s, t2lat, lat2t
+    , BSlat (..), s2lat, lat2s, t2lat, lat2t
     , s3lat, t3lat, s3latin, t3latin
+    , s2url, url2s, b2urlf, urlf2b, unURL, t22latin
     , convertLatin, findNonLatinChars, findNonLatinCharsT
-    , htf_thisModulesTests
     , module Safe
     )   where
 
-import           Data.Text.Arbitrary  ()
-import           Test.Framework
-import           Test.Invariant (inverts)
 import           Safe
 import Control.Monad (join)
 --import Data.ByteString.Arbitrary
@@ -93,10 +91,6 @@ t2s :: Text -> String
 -- ^ String to Text (invertable)
 t2s = T.unpack
 
-prop_t2s :: Text -> Bool
-prop_t2s = inverts s2t t2s
-prop_s2t :: String -> Bool
-prop_s2t = inverts t2s s2t
 
 type LazyByteString = Lazy.ByteString
 
@@ -107,12 +101,6 @@ type LazyByteString = Lazy.ByteString
 newtype BSUTF = BSUTF ByteString deriving (Show, Eq)
 unBSUTF (BSUTF a) = a
 
-instance Arbitrary ByteString where arbitrary = ByteString.pack <$> arbitrary
-instance Arbitrary BSUTF where
-    arbitrary =  do
-                    c :: ByteString <- arbitrary
-                    let t = testByteStringUtf8 c
-                    if t then return (BSUTF c) else arbitrary
 
 t2bu :: Text ->  BSUTF
 -- ^ Text to Bytestring (invertable)
@@ -122,10 +110,6 @@ bu2t ::  BSUTF -> Text
 -- ^ ByteString to Text --  inverse (not an arbitrary input)
 bu2t = decodeUtf8 . unBSUTF
 
-prop_t2bu :: Text -> Bool
-prop_t2bu = inverts bu2t t2bu
-prop_bu2t :: BSUTF -> Bool
-prop_bu2t = inverts t2bu bu2t
 
 -- conversion ByteString BSUTF
 b2bu :: ByteString -> Maybe BSUTF
@@ -161,12 +145,6 @@ bb2t :: ByteString -> Text
 -- converts and stopw with error when not UTF8
 bb2t s = fromJustNote ("bb2s - bytestring to text conversion: " ++ show s
         ++ " was not a utf8") . b2t $ s
-prop_t2b ::Text -> Bool
-prop_t2b a = maybe True (a ==)  (b2t . t2b $ a)
-
-prop_b2t :: ByteString -> Bool
-prop_b2t a = maybe True ((a==) . t2b) mb
-    where   mb = b2t a
 -- bytestring -- string (just a composition of t2s . b2t and reverse)
 s2bu :: String ->  BSUTF
 -- ^ String to Bytestring (invertable)
@@ -195,10 +173,6 @@ b2s = fmap t2s . b2t
 
 newtype URL = URL String deriving (Show, Eq)
 unURL (URL t) = t
-instance Arbitrary URL where
-    arbitrary = do
-            a <- arbitrary
-            return . s2url $ a
 
 
 s2url :: String -> URL
@@ -211,16 +185,11 @@ url2s :: URL -> String
 url2s  =   URI.unEscapeString . unURL
 --url2s a =   HTTP.urlDecode . unURL $ a
 
-prop_s2url = inverts url2s s2url
-prop_url2s = inverts s2url url2s
-
 testUrlEncodingURI :: String -> Bool
 testUrlEncodingURI a = a == (unURL . s2url . url2s . URL $ a)
 -- checks if reencoding with HTTP gives the same URL, thus ok encoding
 -- input is URL encoded string
 
-test_httpEncode = assertEqual "x%20x" (s2u "x x")
---test_snapEncode = assertEqual "x+x" (b2s . b2u . s2b $  "x x")
 
 url2u = unURL
 u2url a = if testUrlEncodingURI a then Just (URL a) else Nothing
@@ -234,29 +203,11 @@ u2s :: String -> Maybe String     --not inverse
 -- ^ convert url to string   (uses code from Network.HTTP, which converts space into %20)
 u2s  =   fmap url2s . u2url
 
-prop_s2u :: String -> Bool
-prop_s2u a = maybe False (a==) (u2s . s2u $ a)
-
-test_s2uA = assertEqual (Just "A") (u2s . s2u $ "A")
-test_s2uB = assertEqual (Just " ") (u2s . s2u $ " ")
-test_s2uB1 = assertEqual "%20" (s2u " ")
-test_s2uC1 = assertEqual False (testUrlEncodingURI "%a ")
---test_s2uC2 = assertEqual ("%20") (HTTP.urlDecode "%a ")
-test_s2uC2 = assertEqual "%a " (URI.unEscapeString "%a ")
-test_s2uC3 = assertEqual Nothing (u2s "%a ")
-
-prop_u2s :: String -> Bool
-prop_u2s a = maybe True ((a==) . s2u) mb
-    where   mb = u2s a
 
 -- case for encoding of form content (with + for space)
 
 newtype URLform = URLform ByteString deriving (Show, Eq)
 unURLform (URLform t) = t
-instance Arbitrary URLform where
-    arbitrary = do
-            a :: ByteString <- arbitrary
-            return . b2urlf $ a
 
 
 b2urlf :: ByteString -> URLform
@@ -267,8 +218,6 @@ urlf2b :: URLform -> ByteString
 -- ^ convert url to string   (uses code from SNAP, which converts space into +)
 urlf2b = fromJustNote "urlf2b nothing" . SN.urlDecode . unURLform
 
-prop_b2urlf = inverts urlf2b b2urlf
-prop_urlf2b = inverts b2urlf urlf2b
 
 testUrlEncodingSNAP :: ByteString -> Bool
 testUrlEncodingSNAP a =  maybe False ((a ==). SN.urlEncode) . SN.urlDecode $ a
@@ -278,8 +227,6 @@ testUrlEncodingSNAP a =  maybe False ((a ==). SN.urlEncode) . SN.urlDecode $ a
 -- checks if reencoding with SNAP gives the same URLform, thus ok encoding
 -- this test allows control in url encoded strings ...
 
-test_SNAPEncode = assertEqual "x+x" (b2uf .s2b $ "x x")
---test_snapEncode = assertEqual "x+x" (b2s . b2u . s2b $  "x x")
 
 urlf2u = unURLform
 u2urlf a = if testUrlEncodingSNAP a then Just (URLform a) else Nothing
@@ -294,59 +241,6 @@ uf2b :: ByteString -> Maybe ByteString     --not inverse
 -- ^ convert url to ByteString   (uses code from SNAP, which converts space into +)
 uf2b  =   fmap urlf2b . u2urlf
 
-prop_b2uf :: ByteString -> Bool
-prop_b2uf a = maybe False (a==) (uf2b . b2uf $ a)
-
-test_b2uA = assertEqual (Just "A") (uf2b . b2uf . s2b $ "A")
-test_b2uB = assertEqual (Just " ") (uf2b . b2uf . s2b $ " ")
-test_b2uB1 = assertEqual "+" (b2uf . s2b $ " ")
-
-prop_uf2b :: ByteString -> Bool
-prop_uf2b a = maybe True ((a==) . b2uf) mb
-    where   mb = uf2b a
-
-test_u2b1 = assertEqual (s2b "%01") (b2uf  "\SOH")
-test_u2b2 = assertEqual (s2b "%02") (b2uf "\STX")
-test_u2b3 = assertEqual (s2b "%00") (b2uf "\NUL")
-
-test_u2bx1 = assertEqual (Just "\SOH") (uf2b . s2b $ "%01")
-test_u2bx2 = assertEqual (Just "\STX")(uf2b . s2b $ "%02")
-test_u2bx3 = assertEqual (Just "\NUL") (uf2b . s2b $ "%00")
-
---test_u2by1 = assertEqual (Just "\SOH") (u2b  "\SOH")
--- with specific test for url:
-test_u2by1 = assertEqual Nothing (uf2b  "\SOH")
-test_u2sy1 = assertEqual Nothing (u2s  "\SOH")
-
-
--- check if snap and network-uri decode the same
--- the difference is only in the encoding
-
---prop_snap_uri :: String -> Bool
---prop_snap_uri =  (testUrlEncodingSNAP . s2b) <=>  (testUrlEncodingURI )
--- except "!" "$"(see test_u2by2 u2sy2)
-
---prop_snap_uri_decode :: String -> Bool
---prop_snap_uri_decode =  ( uf2b . s2b) <=>  (fmap s2b . u2s )
--- the actual decoding is different for some chars, e.g.:
-
-test_u2by2 = assertEqual (Just "!") (uf2b  "!")
-test_u2sy2 = assertEqual Nothing (u2s  "!")
-test_u2by3 = assertEqual (Just "$") (uf2b  "$")
-test_u2sy3 = assertEqual Nothing (u2s  "$")
-test_u2by4 = assertEqual Nothing (uf2b  "~")
-test_u2sy4 = assertEqual (Just "~") (u2s  "~")
-test_u2by5 = assertEqual (Just " ")  (uf2b  "+")
-test_u2sy5 = assertEqual Nothing(u2s  "+")
-test_u2by6 = assertEqual (Just ")")  (uf2b  ")")
-test_u2sy6 = assertEqual Nothing(u2s  ")")
-test_u2by6a = assertEqual (Just "(")  (uf2b  "(")
-test_u2sy6a = assertEqual Nothing(u2s  "(")
-test_u2by7 = assertEqual Nothing  (uf2b  "\"")
-test_u2sy7 = assertEqual Nothing (u2s  "\"")
-test_u2by8 = assertEqual (Just ",")  (uf2b  ",")
-test_u2sy8 = assertEqual Nothing (u2s  ",")
-
 
 t2u :: Text -> Text
 t2u = s2t . s2u . t2s
@@ -358,30 +252,11 @@ b2u a = fmap s2b .  fmap s2u . b2s $ a
 u2b :: ByteString -> Maybe ByteString
 u2b = fmap s2b . join  . fmap u2s . b2s
 
-prop_t2u :: Text -> Bool
-prop_t2u a = maybe True (a==) (u2t . t2u $ a)
-
-prop_b2u :: ByteString -> Bool
-prop_b2u a = maybe True (a==) (join . fmap u2b . b2u $ a)
-
-prop_u2t :: Text -> Bool
-prop_u2t a = maybe True ((a==) . t2u) mb
-    where   mb = u2t a
-
-prop_u2b :: ByteString -> Bool
-prop_u2b a = maybe True  (a==)  mb
-    where   mb = join . fmap b2u . u2b $ a
 
 -- | bytestring with latin1 encoded characters
 newtype BSlat = BSlat ByteString deriving (Show, Eq)
 unBSlat (BSlat a) = a
 
-instance Arbitrary BSlat where
-    arbitrary =  do
-                    c :: ByteString <- arbitrary
-                    return $ BSlat c
---                    let t = testByteStringUtf8 c
---                    if t then return (BSUTF c) else arbitrary
 
 lat2s :: BSlat -> String
 -- ^ bytestring with latin encoding to string
@@ -397,8 +272,6 @@ s3lat :: String ->  BSlat   -- is this always possible ?
 s3lat   =  BSlat . s3latin
 
 
-prop_lat2s :: BSlat -> Bool
-prop_lat2s = inverts s3lat lat2s
 
 --prop_s2lat :: String -> Bool  -- will fail ? fails
 --prop_s2lat = inverts lat2s s3lat
@@ -416,11 +289,6 @@ t3lat :: Text -> BSlat   -- is this always possible
 -- lossy!
 t3lat =  BSlat . t3latin
 
-prop_lat2t :: BSlat -> Bool
-prop_lat2t = inverts t3lat lat2t
-
---prop_t3lat :: Text -> Bool   -- fails for \402 \419
---prop_t3lat s  = inverts lat2t t3lat (s2t . convertLatin . t2s $ s)
 
 
 latin2s :: ByteString -> String
@@ -472,8 +340,6 @@ findNonLatinCharsT :: Text -> Text
 -- ^ the result is a string of all the characters not in the latin1 encoding
 findNonLatinCharsT = s2t . findNonLatinChars . t2s
 
-prop_latin2s :: ByteString -> Bool
-prop_latin2s   = inverts s2latin latin2s -- maybe True ((b ==). latin2s) (s2latin b)
 
 --prop_s2latin :: String -> Bool     -- why does this always work?  (is the intermediate result ok?)
 --prop_s2latin = inverts latin2s s2latin
@@ -498,17 +364,6 @@ t3latin :: Text ->  ByteString
 -- text to bytestring - meaningful, but converted -- lossy!
 t3latin   = s3latin . t2s  -- Data.ByteString.Char8.pack . T.unpack
 --
-prop_latin2t :: ByteString -> Bool
--- the inermediate text is not always meaningful
-prop_latin2t = inverts t2latin latin2t
-
-prop_t2latin :: Text -> Bool
---prop_t2latin t =   inverts latin2t t2latin t   -- fails
-prop_t2latin t = if all  ((<256) . ord) (t2s t) then  inverts latin2t t2latin t else True
-
-prop_t22latin :: Text -> Bool
---prop_t2latin t =   inverts latin2t t2latin t   -- fails
-prop_t22latin t =  maybe True ((t==) .latin2t) (t22latin t)
 
 putIOwords = putStrLn . unlines . map t2s
 

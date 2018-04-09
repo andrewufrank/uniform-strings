@@ -7,7 +7,6 @@
 -- todo - how to compare with similar ops in fileio?
 
 -----------------------------------------------------------------------------
-{-# OPTIONS_GHC -F -pgmF htfpp #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -15,16 +14,15 @@
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 {-# OPTIONS_GHC -w #-}
 
-module Uniform.StringInfix  where
+module Uniform.Strings.Infix  where
 
 
 --import Data.Char (toUpper, toLower, isSpace)
 -- import "monads-tf" Control.Monad.State (MonadIO, liftIO)
 
 import           GHC.Exts                 (IsString (..))
-import           Test.Framework
-import           Uniform.StringConversion
-import           Uniform.StringUtilities
+import           Uniform.Strings.Conversion
+import           Uniform.Strings.Utilities
 
 -- | a synonym for append for text only
 --(<>) :: (CharChains s) => s -> s -> s

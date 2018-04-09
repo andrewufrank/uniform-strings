@@ -16,7 +16,6 @@
 -- class niceStrings can be replaced or integrated in the generic strings
 -- it may be useful to have more than one show like operation
 -----------------------------------------------------------------------------
-{-# OPTIONS_GHC -F -pgmF htfpp #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -30,7 +29,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 {-# OPTIONS_GHC -w #-}
 
-module Uniform.StringUtilities
+module Uniform.Strings.Utilities
     (
     CharChains (..)
     , CharChains2 (..)
@@ -39,10 +38,10 @@ module Uniform.StringUtilities
     , wordsT,  concatT, showT, readNoteT, readNoteTs
     , sortCaseInsensitive, cmpCaseInsensitive
     , maybe2string
-    , htf_thisModulesTests
     , showList'
     , T.toTitle
     , toLowerStart, toUpperStart  -- for types and properties in RDF
+    , prop_filterChar
     )
     where
 
@@ -50,7 +49,7 @@ import Uniform.Zero
 import Uniform.ListForm
 
 import           Algebra.Laws             as Law
-import           Test.Framework
+--import           Test.Framework
 import           Test.Invariant           as Rule
 
 -- probably better just to move these module to package uniform-algebra
@@ -71,7 +70,7 @@ import qualified Data.Text                as T
 import           Safe
 -- import           Uniform.Error            (fromJustNote)
 -- not possible, because Error is based on String
-import           Uniform.StringConversion
+import           Uniform.Strings.Conversion
 import qualified Data.ByteString.Lazy as Lazy
 --
 -- | generalized functions to work on chains of characters
@@ -208,6 +207,8 @@ class (ListForms a, Eq a) => CharChains a where
 --      where
 --          cond x = x `notElem` ['a', '\r', '1']
 --          af = (filterChar cond a)
+
+
 class CharChains2 x a where
     show' ::  x -> a
 -- replaced with toString or toText
@@ -299,20 +300,6 @@ instance CharChains String where
     nubChar = nub
     take'  = take
 
-prop_zero_mknull_string :: String -> Bool
-prop_zero_mknull_string = prop_zero_mknull
-
-prop_assoz_string :: String -> String -> String -> Bool
-prop_assoz_string  = prop_assoz
-
-prop_concat_string :: [String] -> Bool
-prop_concat_string  =  prop_concat
-
-prop_filterChar_string :: String -> Bool
-prop_filterChar_string a = all (cond)    af
-      where
-          cond x = x `notElem` ['a', '\r', '1']
-          af = (filterChar cond a)
 
 --instance CharChains2 String String where
 --    show' =  id
@@ -362,12 +349,13 @@ instance CharChains Text where
     lengthChar = T.length
     removeChar c = T.filter (c /=)
     filterChar = T.filter
+    nubChar = s2t . nub .t2s
+    take' = T.take
+
     prop_filterChar a = (t2s af) == (filterChar cond . t2s $ a)
       where
           cond x = x `notElem` ['a', '\r', '1']
           af = filterChar cond a :: Text
-    nubChar = s2t . nub .t2s
-    take' = T.take
 
 --instance CharChains LazyByteString where
 --    append' = Lazy.append
@@ -385,18 +373,6 @@ concatT = concat'
 --showT = show'
 showT t = s2t c
     where c = show t :: String
---
-prop_zero_mknull_text :: Text -> Bool
-prop_zero_mknull_text = prop_zero_mknull
-
-prop_assoz_text :: Text -> Text -> Text -> Bool
-prop_assoz_text  = prop_assoz
-
-prop_concat_text :: [Text] -> Bool
-prop_concat_text  =  prop_concat
-
-prop_filterChar_text :: Text -> Bool
-prop_filterChar_text = prop_filterChar
 
 instance CharChains BSUTF  where
 -- works on utf8 encoded bytestring, convert with b2bu and bu2b
@@ -426,15 +402,6 @@ instance CharChains BSUTF  where
     splitOn' o s = fmap t2bu <$> splitOn' (bu2t o) (bu2t s)
     trim' = s2bu . trim' . bu2s
 
---prop_zero_mknull_bs :: ByteString -> Bool
---prop_zero_mknull_bs = prop_zero_mknull
--- no instance for arbitrary ByteString
-
---instance CharChains Int where
---    toString = show
---
---instance CharChains Bool where
---    toString = show
 
 unlinesT :: [Text] -> Text
 unlinesT = unlines'
@@ -470,118 +437,3 @@ instance (NiceStrings a) => NiceStrings [a] where
     shownice as = concat' . catMaybes $ [intercalate' "," .  map shownice $ as, Just "\n"]
 --instance (NiceStrings a) => NiceStrings (V.Vector a) where
 --    shownice  = unwords' . map shownice . V.toList
-
-
--- tests that text operations have same semantics than string2maybe    putIOwords  =liftIOstrings
-prop_unwords :: [String]  -> Bool
-prop_unwords =     unwords' . map s2t  <=>  s2t . unwords
-
-prop_words =  words' . s2t <=> map s2t . words
-
--- not invertible for [""] and not when strings include " "
--- same problem as intervalate!
--- same problem for lines and unlines
---prop_wordsInverse :: [String] -> Bool
---prop_wordsInverse = inverts words' unwords'
-
-prop_unlines = unlines' . map s2t <=>  s2t . unlines
-prop_lines = lines' . s2t <=> map s2t . lines
-
-prop_append :: String -> String -> Bool
-prop_append a b = append' (s2t a) (s2t b) == s2t  (append a  b)
-
-prop_append2 :: String -> String -> Bool
-prop_append2 a b = append a b == reverse (append (reverse b) (reverse a))
-
-prop_null = null' . s2t <=> null
--- prop_toUpper = toUpper' . s2t <=> s2t . toUpper'  -- failed for "\223" sz ligature
-prop_toLower = toLower' . s2t <=> s2t . toLower'
-
---prop_toLowerInvers :: String -> Bool
---prop_toLowerInvers = inverts toLower' toUpper'
-
-prop_toLower1 :: String -> Bool
-prop_toLower1 = idempotent toLower'
-prop_toLower2 :: Text -> Bool
-prop_toLower2 = idempotent toLower'
-
-prop_toUpper1 :: String -> Bool
-prop_toUpper1 = idempotent toUpper'
-prop_toUpper2 :: Text -> Bool
-prop_toUpper2 = idempotent toUpper'
-
--- conversin of lowercase to uper and back is not inverse
---prop_inverse_toUpper :: String -> Bool
---prop_inverse_toUpper a = inverts toLower' toUpper' (toLower' a)
---
---prop_inverse_toUpperT :: Text -> Bool
---prop_inverse_toUpperT a = inverts toLower' toUpper' (toLower' a)
-
---prop_inverse_toLower :: String -> Bool
---prop_inverse_toLower a = inverts toUpper' toLower' (toUpper' a)
---
---prop_inverse_toLowerT :: Text -> Bool
---prop_inverse_toLowerT a = inverts toUpper' toLower' (toUpper' a)
-
-prop_isPrefixOf a b = isPrefixOf' (s2t a) (s2t b) == isPrefixOf' a b
-prop_isInfixOf' a b = isInfixOf' (s2t a) (s2t b) == isInfixOf' a b
-prop_stripPrefix'f a b = stripPrefix' (s2t a) (s2t b) == fmap s2t  (stripPrefix' a b)
-
-prop_stripPrefix2 :: String -> String -> Bool
-prop_stripPrefix2 a b = stripPrefix' a (append' a b) == Just b
-
--- establish inverse for strings
-prop_inverse_intercalate :: String -> [String] -> Bool
-prop_inverse_intercalate s a = maybe True (isJust . fmap (a==) . splitOn' s) ( intercalate' s a )
---prop_intercalate :: String -> [String] -> Bool
---prop_intercalate a b = intercalate' (s2t a) (map s2t b) ==  fmap s2t (intercalate' a b)
-
-prop_trim = trim' . s2t  <=> s2t . trim'
-prop_trim2 :: String -> Bool
-prop_trim2 = idempotent trim'
-prop_trim3 :: Text -> Bool
-prop_trim3 = idempotent trim'
-
-prop_splitOn_text a b = splitOn' (s2t a) (s2t b)  == fmap (map s2t) (splitOn' a b)
-prop_splitOn_bytestring a b =
-        splitOn' (s2bu a) (s2bu b)  == fmap (map s2bu) (splitOn' a b)
-
-prop_splitOn_intercalate :: String -> [String] -> Bool
-prop_splitOn_intercalate a b =
-    if null a then True
-        else if any (a `isInfixOf'`) b then True
-                else    (maybe True  (b==))  (maybe Nothing (splitOn' a)
-                            ( intercalate' a $ b))
-        -- fails on "" [""]
-
-test_splitOn = assertBool ( Just [] == splitOn' [] ("a"::String))
-test_bu2s = assertEqual ("a"::String) (toString . t2bu $ ("a" :: Text))
-
---test_show'_forText = assertEqual ("a"::String) (show' ("a"::String))
--- gives overlapping with [a]
-test_show'_forString = assertEqual ("a"::Text) (show' ("a"::Text))
-
---stringTest :: IO Bool
---stringTest = do
---    let
---        r1 = splitOn'  (""::String) ("a"::String)   :: Maybe [String]
---        r2 = splitOn'  (""::Text) ("a"::Text)  :: Maybe [Text]
---        v1 = S.splitOn  (""::String) ("a"::String)   ::  [String]
-----        v2 = T.splitOn   (""::Text) ("a"::Text)  ::  [Text]  -- produces error
---        w1 = S.splitOn  ("x"::String) ("a"::String)   ::  [String]
---        w2 = T.splitOn   ("x"::Text) ("a"::Text)  ::  [Text]
---        c1 = L.intercalate  ("a"::String) ([]::[String])   :: String
---        c2 = T.intercalate  ("a"::Text) ([]::[Text])   ::Text
---        d1 = intercalate' ("a"::String) ([]::[String])   ::Maybe String
---        d2 = intercalate' ("a"::Text) ([]::[Text])   ::Maybe Text
---    putIOwordsS ["splitOn on empty input \nfor string", show r1]
---    putIOwords ["\nfor text", show  r2, "--"]
---    putIOwordsS ["S.splitOn on empty input \nfor string", show v1] --  ["","a"]
-----    putIOwords ["\nT. for text", show  v2, "--"] -- produces error
---    putIOwordsS ["S.splitOn on x input \nfor string", show w1] --  ["","a"]
---    putIOwords ["\nT. for text", show  w2, "--"] -- produces error
---    putIOwords ["intercalate for string",  c1, "-"]
---    putIOwords ["intercalate for text",   t2s c2, "-"]
---    putIOwords ["intercalate' for string", show  c1, "-"]
---    putIOwords ["intercalate' for text",   show  c2, "-"]
---    return True

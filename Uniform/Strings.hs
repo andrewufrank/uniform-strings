@@ -9,7 +9,6 @@
 
 -- the latin encoding is produced by show ...
 -----------------------------------------------------------------------------
-{-# OPTIONS_GHC -F -pgmF htfpp #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -20,16 +19,15 @@
 {-# OPTIONS_GHC -w #-}
 
 module Uniform.Strings (
-    module Uniform.StringConversion
-    , module Uniform.StringUtilities
-    , module Uniform.StringInfix
+    module Uniform.Strings.Conversion
+    , module Uniform.Strings.Utilities
+    , module Uniform.Strings.Infix
     , module Data.String   -- for IsString class to make overloaded work
     , putIOwordsT
 --    , putIOwordsS
     , putIOwords
     , wordwrap
     , NiceStrings (..)
-    , htf_thisModulesTests
     , IsString (..)
 --    , wordsT,  concatT, showT
 --    , unlinesT, unwordsT,
@@ -37,11 +35,10 @@ module Uniform.Strings (
     )   where
 
 
-import           Test.Framework
-import           Uniform.StringConversion
-import           Uniform.StringInfix
+import           Uniform.Strings.Conversion
+import           Uniform.Strings.Infix
 -- hidde when conflict in use                    hiding ((<.>), (</>))
-import           Uniform.StringUtilities
+import           Uniform.Strings.Utilities
 --if these string ops are desired (and not the usual ones from fileio
 -- then import them from Data.StringInfix
 
