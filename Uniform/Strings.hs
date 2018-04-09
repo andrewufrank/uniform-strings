@@ -32,6 +32,8 @@ module Uniform.Strings (
 --    , wordsT,  concatT, showT
 --    , unlinesT, unwordsT,
 --    , stringTest
+    , module Uniform.Zero
+    , module Uniform.ListForm
     )   where
 
 
@@ -41,6 +43,10 @@ import           Uniform.Strings.Infix
 import           Uniform.Strings.Utilities
 --if these string ops are desired (and not the usual ones from fileio
 -- then import them from Data.StringInfix
+
+-- only to avoid unusable shadowed
+import Uniform.Zero
+import Uniform.ListForm
 
 import           "monads-tf" Control.Monad.State      (MonadIO, liftIO)
 import           Data.String

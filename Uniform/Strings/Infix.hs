@@ -29,6 +29,11 @@ import           Uniform.Strings.Utilities
 --(<>) :: Text -> Text -> Text
 --(<>) = append'
 
+---- | a synonym for appendTwo
+--(<>) :: (ListForms s) => s -> s -> s
+----(<>) :: Text -> Text -> Text
+--(<>) = appendTwo
+
 
 -- (<:>), (<+>), (<->), (</>), spitz
 --(<:>) :: (IsString s, CharChains s) => s -> s -> s

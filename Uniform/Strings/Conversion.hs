@@ -21,6 +21,11 @@
 {-# LANGUAGE OverloadedStrings     #-}
 -- {-# LANGUAGE PackageImports        #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving
+    , GeneralizedNewtypeDeriving
+    , DeriveGeneric
+    , DeriveAnyClass
+      #-}
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -w #-}
@@ -46,6 +51,9 @@ module Uniform.Strings.Conversion (
     )   where
 
 import           Safe
+import GHC.Generics
+import Uniform.Zero
+
 import Control.Monad (join)
 --import Data.ByteString.Arbitrary
 -- does not produce a simple Arbitrary for Bytestring, could be converted?
@@ -94,11 +102,13 @@ t2s = T.unpack
 
 type LazyByteString = Lazy.ByteString
 
+instance Zeros ByteString where zero = t2b ""
 -- ByteString -- Text
 -- bytestring can contain any bitcombinations (binary)
 
 -- bytestring with utf encoded characters
-newtype BSUTF = BSUTF ByteString deriving (Show, Eq)
+newtype BSUTF = BSUTF ByteString
+    deriving (Show, Read, Eq, Ord, Generic, Zeros, Semigroup, Monoid)
 unBSUTF (BSUTF a) = a
 
 

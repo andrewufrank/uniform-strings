@@ -30,8 +30,9 @@
 {-# OPTIONS_GHC -w #-}
 
 module Uniform.Strings.Utilities
-    (
-    CharChains (..)
+    (module Uniform.Zero
+    , module Uniform.ListForm
+    , CharChains (..)
     , CharChains2 (..)
     , NiceStrings (..)
     , unlinesT, unwordsT
@@ -113,16 +114,16 @@ instance ListForms String where
 
 instance ListForms LazyByteString where
     type LF LazyByteString = Char
-    appendTwo = Lazy.append
+--    appendTwo = Lazy.append
     mkOne = b2bl . t2b . T.singleton
 
 instance ListForms BSUTF where
     type LF BSUTF = Char
-    appendTwo a b =  t2bu . appendTwo  (bu2t a) $ bu2t b
+--    appendTwo a b =  t2bu . appendTwo  (bu2t a) $ bu2t b
     mkOne =  t2bu . T.singleton
 
-instance Zeros BSUTF where
-    zero = t2bu ""
+--instance Zeros BSUTF where   -- derived in Conversion
+--    zero = t2bu ""
 
 class (Zeros a, ListForms a, Eq a) => CharChains a where
 --    {-# MINIMAL   #-}
