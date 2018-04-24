@@ -53,6 +53,7 @@ module Uniform.Strings.Conversion (
 import           Safe
 import GHC.Generics
 import Uniform.Zero
+import Data.Semigroup
 
 import Control.Monad (join)
 --import Data.ByteString.Arbitrary
