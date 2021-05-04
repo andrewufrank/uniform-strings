@@ -6,12 +6,12 @@
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
 {-# LANGUAGE OverloadedStrings     #-}
 
-module Main     where      -- must have Main (main) or Main where
+-- module Spec     where      -- must have Main (main) or Main where
 
 --import Uniform.Strings
 import           Test.Framework
-import           Test.Framework
-import  {-@ HTF_TESTS @-}         Uniform.Strings.Conversion_test
+import Uniform.Strings.Conversion_test
+    ( htf_Uniform_Strings_Conversion_test_thisModulesTests )
 import  {-@ HTF_TESTS @-}         Uniform.Strings.Infix_test
 import   {-@ HTF_TESTS @-}        Uniform.Strings.Utilities_test
 

@@ -41,7 +41,7 @@ import  Uniform.Strings.Conversion
 --import           Algebra.Laws             as Law
 import           Test.Framework
 import Data.Text.Arbitrary
-import           Test.Invariant           as Rule
+import           Test.Invariant           as Rule  
 
 -- probably better just to move these module to package uniform-algebra
 -- but there is so far only zero
