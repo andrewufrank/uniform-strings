@@ -339,7 +339,7 @@ instance CharChains Text where
     trim' = T.strip 
     removeLast a = T.dropEnd 1 a
 
-    reverseString = T.reverse  -
+    reverseString = T.reverse  
 
     printf' p   = s2t . printf p
     lengthChar = T.length
