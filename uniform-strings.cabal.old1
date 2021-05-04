@@ -3,6 +3,8 @@ cabal-version: 1.12
 -- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: 080943a257fd12377269ae1aa74a279ca4099325b44e90be487e9a9c8b6cb0a6
 
 name:           uniform-strings
 version:        0.0.10.0
