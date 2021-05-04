@@ -21,13 +21,10 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
--- {-# LANGUAGE TypeSynonymInstances  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE PackageImports  #-}
-    -- , RecordWildCards    
 
--- {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 {-# OPTIONS_GHC -w #-}
 
@@ -44,7 +41,7 @@ module Uniform.Strings.Utilities
     , showList'
     , putIOwords, debugPrint 
     , T.toTitle
-    , toLowerStart, toUpperStart  -- for types and properties in RDF
+    , toLowerStart, toUpperStart   
     , prop_filterChar
     , isSpace, isLower
     , PrettyStrings (..)
@@ -72,8 +69,6 @@ import           Data.Text                (Text)
 import qualified Data.Text                as T (head, cons, tail, append, singleton, unwords, words, unlines, lines, empty, toUpper, toLower, concat, isPrefixOf, isInfixOf, stripPrefix, stripSuffix, intercalate, splitOn, strip, dropEnd, reverse, length, filter, take, drop, replace, null, toTitle)
 import qualified Data.List.Utils       as LU (replace)
 import Safe ( readNote )
--- import           Uniform.Error            (fromJustNote)
--- not possible, because Error is based on String
 import Uniform.Strings.Conversion
     ( Text,
       BSUTF,
@@ -93,11 +88,6 @@ import "monads-tf" Control.Monad.State      (MonadIO, liftIO)
 import Control.Monad (when)
 
 
--- | generalized functions to work on chains of characters
--- (i.e. strings, text, url encoded, bytestring), text and bytestring
--- with the same semantics
--- change name to CharChains was Strings
---
 readNoteTs :: (Show a, Read a) =>  [Text] -> Text -> a   -- TODO
 -- ^ read a Text into a specific format
 readNoteTs msg a = readNote  (unlines (map t2s msg) <> show a) . t2s $ a
@@ -173,26 +163,19 @@ class (Zeros a, ListForms a, Eq a) => CharChains a where
     append = appendTwo
     append' = appendTwo
 
---    append  append'  -- without ' to maintain old code
-
     null' :: a -> Bool
     null' = isZero
---    isLowerCase :: a -> Bool
---    isSpaceChar :: a -> Bool
--- operates on char, would be allLower?
     mknull :: a
---    -- to avoid a dependency on zero from algebra
-
     toLower' :: a -> a
     -- ^ convert the string to  lowercase, idempotent
     -- is not inverse of toUpper
     toUpper':: a -> a
-    -- is not idempotent and gives different results for string and text (sz and similar ligatures)
+    -- ^ is not idempotent and gives different results for string and text (sz and similar ligatures)
 
     isPrefixOf', isInfixOf', isPostfixOf' :: a -> a -> Bool
     isPostfixOf' a = isPrefixOf' (reverseString a) . reverseString
     stripPrefix' :: a -> a -> Maybe a
-    -- takes the prefix away, if present (and return rest). nothing if no prefix
+    -- ^ takes the prefix away, if present (and return rest). nothing if no prefix
     stripSuffix' :: a -> a -> Maybe a
     concat' :: [a] -> a
     trim' :: a -> a
@@ -210,8 +193,7 @@ class (Zeros a, ListForms a, Eq a) => CharChains a where
     drop' :: Int -> a -> a
     -- drop n char from input start
     take' :: Int -> a -> a
-    -- add a splitAt or dropN function
-    -- repalceAll function from POS
+    -- ^ add a splitAt or dropN function
     intercalate' :: a -> [a] -> Maybe a
     -- ^ splitOn' and intercalate' are inverses (see Data.SplitList)
     -- returns Nothing if second  is empty and intercalate "x" "" gives Just ""
@@ -224,12 +206,6 @@ class (Zeros a, ListForms a, Eq a) => CharChains a where
     printf' :: (PrintfArg r) => String -> r -> a
     -- ^ formats a string accoding to a pattern - restricted to a single string (perhaps)
     -- requires type of argument fixed!
---    see http://hackage.haskell.org/package/base-4.9.1.0/docs/Text-Printf.html#v:printf
---       -      left adjust (default is right adjust)
---   +      always use a sign (+ or -) for signed conversions
---   space  leading space for positive numbers in signed conversions
---   0      pad with zeros rather than spaces
--- example "%2.0v" -- always starts with % then digits before and after decimal, v for default
 
 --    length' :: a -> Int
     replace' :: a -> a -> a -> a
@@ -237,22 +213,8 @@ class (Zeros a, ListForms a, Eq a) => CharChains a where
     readMaybe' :: Read b => a -> Maybe b
     -- read something... needs type hints
 
---     prop_zero_mknull :: a -> Bool
---     prop_zero_mknull a = Law.zero append' a mknull
-
---     prop_assoz :: a -> a -> a -> Bool
---     prop_assoz a b c = Rule.associative append' a b c
-
---     prop_concat :: [a] -> Bool
---     prop_concat as =    concat' as == foldr append' mknull as
-
     prop_filterChar :: a -> Bool
     -- test with fixed set of chars to filter out
---    prop_filterChar a = all (cond) . show $  af
---      where
---          cond x = x `notElem` ['a', '\r', '1']
---          af = (filterChar cond a)
-
 
 class CharChains2 x a where
     show' ::  x -> a
@@ -309,9 +271,7 @@ instance CharChains String where
     words' = words
     unlines' = unlines
     lines' = lines
---    append' = (++)
     null' = null
---    isLowerCase = isLower
     mknull = ""
     toUpper' = map toUpper
     toLower' = map toLower
@@ -348,12 +308,6 @@ instance CharChains String where
     replace' = LU.replace
     readMaybe' = readMaybe
 
-
---instance CharChains2 String String where
---    show' =  id
---instance (Show x ) => CharChains2 x String where
---    show' = show
-
 instance CharChains Text where
     toString = t2s
     toText = id
@@ -362,8 +316,6 @@ instance CharChains Text where
     words' =  T.words
     lines' = T.lines
     unlines' = T.unlines
---    append' = T.append
---    null' = T.null
     mknull = T.empty
     toUpper' = T.toUpper
     toLower' = T.toLower
@@ -384,14 +336,10 @@ instance CharChains Text where
       | null' s = Just [""]
       | otherwise = Just $ T.splitOn o s
 
-    trim' = T.strip -- s2t . trim' . t2s
---    splitOn' o s= if null' o then Just []
---                        else if null' s then Nothing else Just $ T.splitOn o s
+    trim' = T.strip 
     removeLast a = T.dropEnd 1 a
---        if null' a
---        then mknull
---        else (s2t . reverseString . tail . reverseString . t2s $ a)
-    reverseString = T.reverse  -- s2t . reverseString . t2s
+
+    reverseString = T.reverse  -
 
     printf' p   = s2t . printf p
     lengthChar = T.length
@@ -410,12 +358,14 @@ instance CharChains Text where
 
 instance CharChains LazyByteString where
     append' = Lazy.append
-    lengthChar a = fromIntegral . Lazy.length $ a  -- gives not exact value??
+    lengthChar a = fromIntegral . Lazy.length $ a  
+        -- ^ gives not exact value??
     take' = Lazy.take . fromIntegral 
     drop' = Lazy.drop . fromIntegral  
 
 unwordsT :: [Text] -> Text
-unwordsT = T.unwords  -- to fix types for overloaded strings
+unwordsT = T.unwords  
+-- ^ to fix types for overloaded strings
 
 wordsT :: Text -> [Text]
 wordsT = words'
@@ -423,18 +373,11 @@ wordsT = words'
 concatT ::  [Text] -> Text
 concatT = concat'
 
---showT ::(CharChains2 a Text) =>  a -> Text
---showT = show'
 showT t = s2t c
     where c = show t :: String
 
 instance CharChains BSUTF  where
--- works on utf8 encoded bytestring, convert with b2bu and bu2b
--- b2bu -> Maybe
--- doubtful - what is possible without error? t2b . b2t is not id
---  all achieved by transforming the input to text and operating on this.
--- result cannot be translated back
--- alternatively used Data.ByteString.Char8 -- which assumes that only 8 bit char
+-- ^ works on utf8 encoded bytestring, convert with b2bu and bu2b
 
     toString = bu2s
     toText = bu2t
@@ -457,7 +400,6 @@ instance CharChains BSUTF  where
     trim' = s2bu . trim' . bu2s
 
 formatInt :: Int -> Int -> Text
--- probably not required ??
 formatInt n  = s2t . case n of
         6 -> printf  ['%', '0', '6', 'd']
         5 ->  printf  ['%', '0', '5', 'd']
@@ -480,10 +422,6 @@ maybe2string (Just s) = s
 
 string2maybe :: (Eq a, IsString a) => a -> Maybe a
 string2maybe x = if x == "" then Nothing else Just x
-
--- | produce a text - any particular needs ? (otherwise replace with showT
--- the needs are to have a non-read-parse conversion
--- integrate in StringUtilities
 
 class   NiceStrings a where
     shownice, showNice :: a -> Text
@@ -513,8 +451,6 @@ instance (NiceStrings a, NiceStrings b) => NiceStrings (a,b) where
 instance (NiceStrings a) => NiceStrings [a] where
     shownice as = concat' . catMaybes $ [intercalate' "," .  map shownice $ as, Just "\n"]
     shownice as = concat' . catMaybes $ [intercalate' "," .  map showlong $ as, Just "\n"]
---showlong (NiceStrings a) => NiceStrings (V.Vector a) where
---    shownice  = unwords' . map shownice . V.toList
 
 instance (NiceStrings a) => NiceStrings (Maybe a) where
     shownice (Just a)  = shownice a
