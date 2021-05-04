@@ -1,4 +1,4 @@
------------------------------------------------------------------------------
+---------------------------------------------------------------------
 --
 -- Module      :  Strings
 -- Copyright   :
@@ -14,8 +14,7 @@
 
 -- strings remain here, to be used when constructing the wrappers for
 -- functions used from other packages (with String interfaces)
-
------------------------------------------------------------------------------
+----------------------------------------------------------------------
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -54,16 +53,8 @@ module Uniform.Strings.Conversion (
 import           Safe (fromJustNote)
 import GHC.Generics ()
 import Uniform.Zero ( Generic, Zeros(zero) )
--- import Data.Semigroup
 
 import Control.Monad (join)
---import Data.ByteString.Arbitrary
--- does not produce a simple Arbitrary for Bytestring, could be converted?
-
-
--- import "monads-tf" Control.Monad.State (MonadIO, liftIO)
-
--- import GHC.Exts( IsString(..) )
 
 import           Data.Text            (Text)
 import qualified Data.Text            as T
@@ -73,27 +64,13 @@ import           Data.ByteString      (ByteString)
 import qualified Data.ByteString      as ByteString
 import qualified Data.ByteString.Lazy as Lazy 
 import Data.ByteString.Char8 (pack, unpack)
--- An efficient compact, immutable byte string type (both strict and lazy)
--- suitable for binary or 8-bit character data.
--- import qualified Data.ByteString.UTF8 as BSUTF (toString, fromString)
--- toString replaces invalid chars with '\xFFFD'
 
 import           Data.Text.Encoding   (decodeUtf8, decodeUtf8', encodeUtf8)
--- decode bytestring to text (exception if not valid)
 
--- URL encode (escaped)
---import qualified Network.HTTP as HTTP (urlDecode, urlEncode)
 import qualified Network.URI          as URI
 import qualified Snap.Core            as SN
 
--- import Data.Text.ICU.Convert  as ICU  -- all conversion stuff, neede for tests
---import Data.Text.Encoding as Encoding
 import qualified Data.Text.Lazy as LText  -- (toStrict, fromStrict)
--- import qualified Data.List as L
--- import qualified Data.Text.IO as T (putStrLn)
-
--- Text (UTF8) -- String
--- trivial, are the same set of values
 
 bl2t :: LazyByteString ->Text
 -- ^ conversion from LazyByteString to text (only if guarantee that only utf8 values)
@@ -121,10 +98,7 @@ type LazyByteString = Lazy.ByteString
 
 instance Zeros ByteString where zero = t2b ""
 instance Zeros LazyByteString where zero = b2bl zero
--- ByteString -- Text
--- bytestring can contain any bitcombinations (binary)
 
--- bytestring with utf encoded characters
 newtype BSUTF = BSUTF ByteString
     deriving (Show, Read, Eq, Ord, Generic, Zeros, Semigroup, Monoid)
 
@@ -196,14 +170,11 @@ bl2b = Lazy.toStrict
 b2s :: ByteString -> Maybe String
 b2s = fmap t2s . b2t
 
--- url encoding - two types url and form data
--- url - in url encode space as %20, as done in the network-uri library (for strings)
---  better name: escape?
--- urlForm - in form as + , as done in the snap core librar (for bytestrings in utf8 endocode)
--- use only for the query part, not the full url!
 
 newtype URL = URL String deriving (Show, Eq)
 instance Zeros URL where zero = URL zero
+
+unURL :: URL -> String
 unURL (URL t) = t
 
 
@@ -215,15 +186,13 @@ s2url =   URL . URI.escapeURIString URI.isUnescapedInURIComponent
 url2s :: URL -> String
 -- ^ convert url to string   (uses code from Network.HTTP, which converts space into %20)
 url2s  =   URI.unEscapeString . unURL
---url2s a =   HTTP.urlDecode . unURL $ a
 
 testUrlEncodingURI :: String -> Bool
 testUrlEncodingURI a = a == (unURL . s2url . url2s . URL $ a)
--- checks if reencoding with HTTP gives the same URL, thus ok encoding
--- input is URL encoded string
 
-
+url2u :: URL -> String
 url2u = unURL
+u2url :: String -> Maybe URL
 u2url a = if testUrlEncodingURI a then Just (URL a) else Nothing
 
 
@@ -239,6 +208,7 @@ u2s  =   fmap url2s . u2url
 -- case for encoding of form content (with + for space)
 
 newtype URLform = URLform ByteString deriving (Show, Eq)
+unURLform :: URLform -> ByteString
 unURLform (URLform t) = t
 
 
@@ -253,14 +223,10 @@ urlf2b = fromJustNote "urlf2b nothing" . SN.urlDecode . unURLform
 
 testUrlEncodingSNAP :: ByteString -> Bool
 testUrlEncodingSNAP a =  maybe False ((a ==). SN.urlEncode) . SN.urlDecode $ a
---testUrlEncodingSNAP a = a == (unURLform . b2urlf . urlf2b . URLform $ a)
--- checks if reencoding with HTTP gives the same URL, thus ok encoding
---testUrlEncodingSNAP a = isJust . SN.urlDecode $ a
--- checks if reencoding with SNAP gives the same URLform, thus ok encoding
--- this test allows control in url encoded strings ...
-
-
+ 
+urlf2u :: URLform -> ByteString
 urlf2u = unURLform
+u2urlf :: ByteString -> Maybe URLform
 u2urlf a = if testUrlEncodingSNAP a then Just (URLform a) else Nothing
 -- this test allows control in url encoded strings ...
 
@@ -287,6 +253,7 @@ u2b = fmap s2b . join  . fmap u2s . b2s
 
 -- | bytestring with latin1 encoded characters
 newtype BSlat = BSlat ByteString deriving (Show, Eq)
+unBSlat :: BSlat -> ByteString
 unBSlat (BSlat a) = a
 
 
@@ -303,11 +270,6 @@ s3lat :: String ->  BSlat   -- is this always possible ?
 -- lossy!
 s3lat   =  BSlat . s3latin
 
-
-
---prop_s2lat :: String -> Bool  -- will fail ? fails
---prop_s2lat = inverts lat2s s3lat
-
 lat2t :: BSlat -> Text
 -- ^ Text encoded as ByteString with latin encoding, if possible
 lat2t = latin2t . unBSlat
@@ -321,16 +283,13 @@ t3lat :: Text -> BSlat   -- is this always possible
 -- lossy!
 t3lat =  BSlat . t3latin
 
-
-
 latin2s :: ByteString -> String
-    --    works always, but produces unexpected results if bytestring is not latin encoded
+    --    | works always, but produces unexpected results if bytestring is not latin encoded
 latin2s = Data.ByteString.Char8.unpack
 --
 s2latin :: String ->  ByteString
-        --  works always, but produces unexpected results if bytestring is not latin encoded
+        --  | works always, but produces unexpected results if bytestring is not latin encoded
 s2latin =  Data.ByteString.Char8.pack
-----s2latin s = if all  ((<256) . ord) s  then Just . Data.ByteString.Char8.pack else Nothing
 
 s22latin :: String -> Maybe ByteString
 s22latin s = if all  ((<256) . ord) s  then  Just .  s2latin  $ s else Nothing   -- Data.ByteString.Char8.pack . T.unpack
@@ -375,13 +334,7 @@ findNonLatinCharsT :: Text -> Text
 findNonLatinCharsT = s2t . findNonLatinChars . t2s
 
 
---prop_s2latin :: String -> Bool     -- why does this always work?  (is the intermediate result ok?)
---prop_s2latin = inverts latin2s s2latin
 
---prop_s3latin :: String -> Bool     --inverts with reasonable intermediate value
---prop_s3latin s = inverts latin2s s2latin (convertLatin s)
-
---
 latin2t :: ByteString -> Text
 latin2t = s2t . latin2s  -- T.pack .  Data.ByteString.Char8.unpack
 
@@ -399,60 +352,11 @@ t3latin :: Text ->  ByteString
 t3latin   = s3latin . t2s  -- Data.ByteString.Char8.pack . T.unpack
 --
 
+putIOwords :: [Text] -> IO ()
 putIOwords = putStrLn . unlines . map t2s
 
+-- chars :: [GHC.Word.Word8]
 chars = [198, 216, 197, 206, 219,140,252,202, 419, 420, 1937 ]
 difficultBString = ByteString.pack chars
 difficultTString = "\198\216\197\206\219\140\252\202\419\420\1937"
 
--- several char are not latin1
---
---test_latin1 :: IO ()
---test_latin1 = do
---    putIOwords ["latin1 start"]
---    conv <- open "ISO-8859-1" Nothing
---    let lat = difficultBString
-----    let uni = "ÆØÅ\DEL\200\SOH\206\219\140\252\202" :: Text
---    let a =   latin2t lat -- toUnicode conv lat :: Text
---    let b =   t2latin a -- fromUnicode conv a
-----    let c = fromUnicode conv uni
-----    let d = toUnicode conv c :: Text
-----    putIOwords [ uni]
---    putIOwords [a,  s2t . show . t2s $ a ]  -- replacement chars for > 256 , but conversion back is ok
---    -- "\198\216\197\206\219\140\252\202\163\164\145"
---    assertEqual b   lat
-----    assertEqual   d  uni
---    putIOwords ["latin1 test end" ]
---
---
---test_latin2 :: IO ()  -- roundtrip conversion text - latin - text works (after lossy conversion!)
---test_latin2 = do
---    putIOwords ["latin2 start"]
---    conv <- open "ISO-8859-1" Nothing
---    let a0 = difficultTString
---    putIOwords [" a0 is", a0]
---    putIOwords ["a0 is a difficutl string", s2t $ show a0]
---    let a = s2t . convertLatin . t2s $ a0
-----    let uni = "ÆØÅ\DEL\200\SOH\206\219\140\252\202" :: Text
---    let b =   t2latin a -- fromUnicode conv a
---    let c =   latin2t b -- toUnicode conv b
---        -- with conv becomes    "\198\216\197\206\219\140\252\202\SUB\SUB\SUB" and fails
---        -- with latin2t becomes "\198\216\197\206\219\140\252\202\163\164\145" and fails
-----    let c = fromUnicode conv uni
-----    let d = toUnicode conv c :: Text
-----    putIOwords [ uni]
---    putIOwords [" a , c is", a , c, "a==c", s2t $ show (a==c)]
---    putIOwords [" a , c is", s2t $ show a , s2t $  show c]
---    assertEqual a c
-----    assertEqual   d  uni
---    putIOwords ["latin2 test end" ]
-
--- test_fromJust_givesError = assertEqual 1 (fromJustNote' "test_fromJust" (Nothing ::Maybe Int))
-
--- test_fromJust_old= assertEqual 1 (fromJustNote "test_fromJust" (Nothing ::Maybe Int))
-
-
--- -- todo error or strings
--- fromJustNote' msg mb = case mb of
---                             Just r -> r
---                             Nothing -> errorT ["fromJust at ", msg , "with arg", showT mb]
