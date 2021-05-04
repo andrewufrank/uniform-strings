@@ -24,15 +24,15 @@ import           GHC.Exts                 (IsString (..))
 import           Uniform.Strings.Conversion
 import           Uniform.Strings.Utilities
 
--- | a synonym for append for text only
+---- | a synonym for append for text only
 --(<>) :: (CharChains s) => s -> s -> s
---(<>) :: Text -> Text -> Text
+----(<>) :: Text -> Text -> Text
 --(<>) = append'
 
 ---- | a synonym for appendTwo
 --(<>) :: (ListForms s) => s -> s -> s
 ----(<>) :: Text -> Text -> Text
---(<>) = appendTwo
+-- (<>) = appendTwo  
 
 
 -- (<:>), (<+>), (<->), (</>), spitz

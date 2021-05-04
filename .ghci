@@ -1,0 +1,5 @@
+:set -fwarn-unused-binds -fwarn-unused-imports
+:set -itests
+:set -isrc
+:load test/Testing.hs
+-- :load Main

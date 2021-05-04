@@ -1,0 +1,84 @@
+name: uniform-strings
+version: 0.0.11.1
+cabal-version: >=1.22
+build-type: Simple
+license: GPL
+license-file: GPL_3
+maintainer: Andrew U. Frank <andrewufrank@gmail.com>
+author: Andrew Frank
+category: Data, Text, Uniform
+synopsis: manipulate and convert strings of characters uniformly and consistently
+description: reduce complexity of Haskell by providing a set of uniformly named
+    of conversion routines between String, Text, ByteString and urlEncoding
+    with the most important text manipulation functions for string and text
+    where the semantic is the same (tested with quickcheck).
+    0.0.9 radical reduction to use Text only
+    0.0.11 structure regularized
+            added LanguageCodes, needs uniform-algebras
+
+source-repository head
+    type: git
+    location: https://github.com/andrewufrank/uniform-strings.git
+
+library
+    build-depends:
+        base >=4.8 && <= 5,
+        uniform-algebras ,
+        network-uri,
+        monads-tf,
+        bytestring,
+        text,
+        text-icu ,
+        -- for the properties to test
+       quickcheck-text,
+        test-invariant,
+
+        numeric-prelude,
+        snap-core,
+        safe,
+        split,
+        zlib
+        , MissingH
+        , uniform-algebras
+         , pretty-show
+         
+    exposed-modules:
+        Uniform.Strings
+    -- for testing, afterwards include in test-suite
+        Uniform.Strings.Conversion
+        Uniform.Strings.Utilities
+        Uniform.Strings.Infix
+--        Uniform.Strings.LanguageCodes  -- moved to convenience Uniform.Codes.LanguageCode
+
+    exposed: True
+    buildable: True
+    default-language: Haskell2010
+    hs-source-dirs: .
+    other-modules:
+
+Test-Suite stringTestAuto
+    type:       exitcode-stdio-1.0
+    main-is:    Uniform/TestMainStrings.hs
+    build-depends: base, HTF
+        , uniform-strings
+        , test-invariant
+        , quickcheck-text
+        , text, bytestring
+        , network-uri
+        , snap-core
+        , uniform-algebras
+    default-language: Haskell2010
+    hs-source-dirs: tests
+    other-modules:
+        Uniform.Strings.Conversion_test
+        Uniform.Strings.Utilities_test
+        Uniform.Strings.Infix_test
+
+-- executable stringtest
+--    build-depends:  base -any
+--        , HTF
+--       , uniform-strings
+--    main-is: UniformStringTest.hs
+--    buildable: True
+--    default-language: Haskell2010
+--    hs-source-dirs: src

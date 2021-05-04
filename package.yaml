@@ -1,0 +1,56 @@
+name:         uniform-strings
+version:      0.0.10.0
+license:      GPL
+license-file: GPL_3
+maintainer:   Andrew U. Frank <andrewufrank@gmail.com>
+author:       Andrew Frank
+copyright:    2021 Andrew U. Frank
+category:     Data Text 
+synopsis: manipulate and convert strings of characters uniformly and consistently
+description: |
+    reduce complexity of Haskell by providing a set of uniformly named
+    of conversion routines between String, Text, ByteString and urlEncoding
+    with the most important text manipulation functions for string and text
+    where the semantic is the same (tested with quickcheck).
+ 
+
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+dependencies:
+- base >= 4.7 && < 5
+- monads-tf
+- safe
+- text
+- bytestring
+- pretty-show
+- MissingH
+- split
+- snap-core
+- text-icu
+- network-uri
+- test-invariant
+- numeric-prelude
+
+- uniform-algebras
+
+library:
+  source-dirs: 
+  - .
+
+
+tests:
+  strings-test:
+    main:                Testing.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    # - uniform-algebras
+    - HTF
+    - quickcheck-text
+    - uniform-strings

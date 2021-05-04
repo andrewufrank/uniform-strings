@@ -1,4 +1,4 @@
- -----------------------------------------------------------------------------
+ ---------------------------------------------------------------YamlBlocks.hs--------------
 --
 -- Module      :  Strings
 -- Copyright   :
@@ -21,11 +21,13 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE OverloadedStrings
-    , RecordWildCards     #-}
+-- {-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE PackageImports  #-}
+    -- , RecordWildCards    
 
-{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
+-- {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 {-# OPTIONS_GHC -w #-}
 
@@ -40,9 +42,15 @@ module Uniform.Strings.Utilities
     , sortCaseInsensitive, cmpCaseInsensitive
     , maybe2string
     , showList'
+    , putIOwords, debugPrint 
     , T.toTitle
     , toLowerStart, toUpperStart  -- for types and properties in RDF
     , prop_filterChar
+    , isSpace, isLower
+    , PrettyStrings (..)
+    -- to generalize
+    , dropWhile, takeWhile, span, break
+    , formatInt
     )
     where
 
@@ -51,7 +59,7 @@ import Uniform.ListForm
 
 import           Algebra.Laws             as Law
 --import           Test.Framework
-import           Test.Invariant           as Rule
+import           Test.Invariant           as Rule (associative)
 
 -- probably better just to move these module to package uniform-algebra
 -- but there is so far only zero
@@ -68,12 +76,18 @@ import           Data.Maybe
 import           Data.Monoid
 import           Data.Text                (Text)
 import qualified Data.Text                as T
+import qualified Data.List.Utils       as LU
 import           Safe
 -- import           Uniform.Error            (fromJustNote)
 -- not possible, because Error is based on String
 import           Uniform.Strings.Conversion
 import qualified Data.ByteString.Lazy as Lazy
---
+import          Text.Read (readMaybe)
+import          Text.Show.Pretty 
+import "monads-tf" Control.Monad.State      (MonadIO, liftIO)
+import Control.Monad (when)
+
+
 -- | generalized functions to work on chains of characters
 -- (i.e. strings, text, url encoded, bytestring), text and bytestring
 -- with the same semantics
@@ -93,14 +107,26 @@ showList' = unlines' . map showT
 
 toLowerStart :: Text -> Text
 -- ^ convert the first character to lowercase - for Properties in RDF
-toLowerStart t = (toLower . T.head $ t ) `T.cons` (T.tail t)
+toLowerStart t = (toLower . T.head $ t) `T.cons` T.tail t
+
 
 toUpperStart :: Text -> Text
 -- ^ convert the first character to Uppercase - for  PosTags in Spanish
-toUpperStart t = (toUpper . T.head $ t ) `T.cons` (T.tail t)
+toUpperStart t = (toUpper . T.head $ t) `T.cons` T.tail t
+
+dropLast :: Int -> [a] -> [a]
+dropLast n = reverse . drop n . reverse
+
+putIOwords :: MonadIO m =>  [Text] -> m ()
+putIOwords = liftIO . putStrLn . t2s . unwords'
+
+debugPrint :: (MonadIO m) => Bool -> [Text] -> m ()
+-- ^ print the texts when the bool is true (flag debug)
+debugPrint flag texts = when flag $ putIOwords texts 
+
 
 --instance Zeros String where zero = (""::String)
-instance Zeros Text where zero = (""::Text)
+instance Zeros Text where zero = "" :: Text
 
 instance ListForms Text where
     type LF Text = Char
@@ -167,7 +193,8 @@ class (Zeros a, ListForms a, Eq a) => CharChains a where
     concat' :: [a] -> a
     trim' :: a -> a
     -- ^ removes all spaces front and back, idempotent
-    reverseString :: a -> a
+    reverseString, reverse' :: a -> a
+    reverse' = reverseString
     removeLast :: a -> a
     -- ^ remove last char
     removeChar ::Char -> a -> a
@@ -176,6 +203,8 @@ class (Zeros a, ListForms a, Eq a) => CharChains a where
     -- filter lets pass what is true
     lengthChar :: a -> Int
     nubChar :: a -> a
+    drop' :: Int -> a -> a
+    -- drop n char from input start
     take' :: Int -> a -> a
     -- add a splitAt or dropN function
     -- repalceAll function from POS
@@ -184,9 +213,11 @@ class (Zeros a, ListForms a, Eq a) => CharChains a where
     -- returns Nothing if second  is empty and intercalate "x" "" gives Just ""
     -- return Nothing if first is empty or contained in second to achievee inverse with splitOn
     splitOn' :: a -> a -> Maybe [a]
-    -- ^ returns Nothing if second is empty
+    -- ^ splits the first by all occurences of the second 
+    -- the second is removed from results
+    -- returns Nothing if second is empty
 
-    printf' :: (PrintfArg r, PrintfType r) => String -> r -> a
+    printf' :: (PrintfArg r) => String -> r -> a
     -- ^ formats a string accoding to a pattern - restricted to a single string (perhaps)
     -- requires type of argument fixed!
 --    see http://hackage.haskell.org/package/base-4.9.1.0/docs/Text-Printf.html#v:printf
@@ -194,8 +225,13 @@ class (Zeros a, ListForms a, Eq a) => CharChains a where
 --   +      always use a sign (+ or -) for signed conversions
 --   space  leading space for positive numbers in signed conversions
 --   0      pad with zeros rather than spaces
+-- example "%2.0v" -- always starts with % then digits before and after decimal, v for default
 
 --    length' :: a -> Int
+    replace' :: a -> a -> a -> a
+    -- replace the first string with the second string in the third string
+    readMaybe' :: Read b => a -> Maybe b
+    -- read something... needs type hints
 
     prop_zero_mknull :: a -> Bool
     prop_zero_mknull a = Law.zero append' a mknull
@@ -204,7 +240,7 @@ class (Zeros a, ListForms a, Eq a) => CharChains a where
     prop_assoz a b c = Rule.associative append' a b c
 
     prop_concat :: [a] -> Bool
-    prop_concat as =    (concat' as)==(foldr append' mknull as)
+    prop_concat as =    concat' as == foldr append' mknull as
 
     prop_filterChar :: a -> Bool
     -- test with fixed set of chars to filter out
@@ -284,7 +320,7 @@ instance CharChains String where
     intercalate' s a
         | null a = Nothing
         | null s = Nothing
-        | s `isInfixOf` (concat' a) = Nothing
+        | s `isInfixOf` concat' a = Nothing
         | otherwise = Just $ L.intercalate s a
 
     splitOn' o s
@@ -295,7 +331,7 @@ instance CharChains String where
         where f = reverse . dropWhile isSpace
     removeLast a =  if null' a
         then mknull
-        else (reverseString . tail . reverseString $ a)
+        else reverseString . tail . reverseString $ a
     reverseString = reverse
     printf' = printf
     lengthChar = length
@@ -304,6 +340,9 @@ instance CharChains String where
 
     nubChar = nub
     take'  = take
+    drop' = drop
+    replace' = LU.replace
+    readMaybe' = readMaybe
 
 
 --instance CharChains2 String String where
@@ -331,14 +370,14 @@ instance CharChains Text where
     stripSuffix' = T.stripSuffix
 
     intercalate' s a
-      | null a = (Nothing :: Maybe Text)
+      | null a = Nothing :: Maybe Text
       | null' s = Nothing
-      | (s `isInfixOf'` (concat' a)) = Nothing
+      | s `isInfixOf'` concat' a = Nothing
       | otherwise = Just $ T.intercalate s a
 
     splitOn' o s
       | null' o = Just []
-      | null' s = (Just [""])
+      | null' s = Just [""]
       | otherwise = Just $ T.splitOn o s
 
     trim' = T.strip -- s2t . trim' . t2s
@@ -356,14 +395,20 @@ instance CharChains Text where
     filterChar = T.filter
     nubChar = s2t . nub .t2s
     take' = T.take
+    drop' = T.drop
 
-    prop_filterChar a = (t2s af) == (filterChar cond . t2s $ a)
+    prop_filterChar a = t2s af == (filterChar cond . t2s $ a)
       where
           cond x = x `notElem` ['a', '\r', '1']
           af = filterChar cond a :: Text
+    replace' = T.replace
+    readMaybe' = readMaybe' . t2s
 
---instance CharChains LazyByteString where
---    append' = Lazy.append
+instance CharChains LazyByteString where
+    append' = Lazy.append
+    lengthChar a = fromIntegral . Lazy.length $ a  -- gives not exact value??
+    take' = Lazy.take . fromIntegral 
+    drop' = Lazy.drop . fromIntegral  
 
 unwordsT :: [Text] -> Text
 unwordsT = T.unwords  -- to fix types for overloaded strings
@@ -407,6 +452,14 @@ instance CharChains BSUTF  where
     splitOn' o s = fmap t2bu <$> splitOn' (bu2t o) (bu2t s)
     trim' = s2bu . trim' . bu2s
 
+formatInt :: Int -> Int -> Text
+-- probably not required ??
+formatInt n  = s2t . case n of
+        6 -> printf  ['%', '0', '6', 'd']
+        5 ->  printf  ['%', '0', '5', 'd']
+        3 -> printf  ['%', '0', '3', 'd']
+        2 ->  printf  ['%', '0', '2', 'd']
+        a -> error ("formatInt not expected int" <> show a)
 
 unlinesT :: [Text] -> Text
 unlinesT = unlines'
@@ -424,21 +477,42 @@ maybe2string (Just s) = s
 string2maybe :: (Eq a, IsString a) => a -> Maybe a
 string2maybe x = if x == "" then Nothing else Just x
 
-
-class NiceStrings a where
--- ^ produce a text - any particular needs ? (otherwise replace with showT
+-- | produce a text - any particular needs ? (otherwise replace with showT
 -- the needs are to have a non-read-parse conversion
 -- integrate in StringUtilities
-    shownice :: a -> Text
 
-instance NiceStrings Text where shownice = id
+class   NiceStrings a where
+    shownice, showNice :: a -> Text
+    showNice = shownice
+    shownice = showNice 
+    showlong :: a -> Text
+    showlong = shownice  -- a default
+class Show a => PrettyStrings a where 
+    showPretty :: a -> Text
+instance Show a => PrettyStrings a where
+    showPretty = s2t . ppShow
 
-instance NiceStrings Int where shownice = show'
-instance NiceStrings Double where shownice = show'
+instance NiceStrings Text where
+    shownice = id
+    showlong = id
+
+instance NiceStrings Int where
+    shownice = show'
+    showlong = show'
+instance NiceStrings Double where
+    shownice = show'
+    showlong = show'
 
 instance (NiceStrings a, NiceStrings b) => NiceStrings (a,b) where
     shownice (a,b) = unwords' [shownice a, shownice b]
+    showlong (a,b) = unwords' [showlong a, showlong b]
 instance (NiceStrings a) => NiceStrings [a] where
     shownice as = concat' . catMaybes $ [intercalate' "," .  map shownice $ as, Just "\n"]
---instance (NiceStrings a) => NiceStrings (V.Vector a) where
+    shownice as = concat' . catMaybes $ [intercalate' "," .  map showlong $ as, Just "\n"]
+--showlong (NiceStrings a) => NiceStrings (V.Vector a) where
 --    shownice  = unwords' . map shownice . V.toList
+
+instance (NiceStrings a) => NiceStrings (Maybe a) where
+    shownice (Just a)  = shownice a
+    shownice Nothing = "Nothing"
+

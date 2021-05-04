@@ -22,9 +22,10 @@
 -- {-# LANGUAGE PackageImports        #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE StandaloneDeriving
-    , GeneralizedNewtypeDeriving
+--    , GeneralizedNewtypeDeriving
     , DeriveGeneric
     , DeriveAnyClass
+    , TypeSynonymInstances
       #-}
 {-# OPTIONS_GHC -fno-warn-missing-methods #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
@@ -34,6 +35,7 @@ module Uniform.Strings.Conversion (
     ByteString, LazyByteString
     , s2b, b2s, b2t,   t2b, t2u,  s2u
     , s2t, t2s
+    , t2tl, tl2t
     -- uses UTF8 as encoding in ByteString
     -- urlencode is always represented the same as the input
     , Text (..), BSUTF (..), URL (..), URLform
@@ -41,12 +43,14 @@ module Uniform.Strings.Conversion (
     , b2bu, bu2b, bu2s, bu2t, t2bu, s2bu
     , u2b, u2t, b2uf, u2s, b2u
     , b2bl, bl2b -- lazy bytestring
+    , bl2t, t2bl 
     , bb2t, bb2s  -- conversion with error if not UTF8
     , s2latin, t2latin, latin2t, latin2s -- conversion to the latin1 encoding
     , BSlat (..), s2lat, lat2s, t2lat, lat2t
     , s3lat, t3lat, s3latin, t3latin
     , s2url, url2s, b2urlf, urlf2b, unURL, t22latin
     , convertLatin, findNonLatinChars, findNonLatinCharsT
+    , filterLatin
     , module Safe
     )   where
 
@@ -67,6 +71,7 @@ import Control.Monad (join)
 import           Data.Text            (Text)
 import qualified Data.Text            as T
 import Data.Char (ord)
+import Data.List (nub)
 import           Data.ByteString      (ByteString)
 import qualified Data.ByteString      as ByteString
 import qualified Data.ByteString.Lazy as Lazy
@@ -85,12 +90,20 @@ import qualified Snap.Core            as SN
 
 import Data.Text.ICU.Convert  as ICU  -- all conversion stuff, neede for tests
 --import Data.Text.Encoding as Encoding
-
+import qualified Data.Text.Lazy as LText
 -- import qualified Data.List as L
 -- import qualified Data.Text.IO as T (putStrLn)
 
 -- Text (UTF8) -- String
 -- trivial, are the same set of values
+
+bl2t :: LazyByteString ->Text
+-- ^ conversion from LazyByteString to text (only if guarantee that only utf8 values)
+bl2t =    bu2t . BSUTF . bl2b
+
+t2bl :: Text -> LazyByteString  
+t2bl =   b2bl . t2b 
+
 
 s2t :: String -> Text
 -- ^ String to Text (invertable)
@@ -100,16 +113,22 @@ t2s :: Text -> String
 -- ^ String to Text (invertable)
 t2s = T.unpack
 
+tl2t = LText.toStrict
+
+t2tl = LText.fromStrict
 
 type LazyByteString = Lazy.ByteString
 
 instance Zeros ByteString where zero = t2b ""
+instance Zeros LazyByteString where zero = b2bl zero
 -- ByteString -- Text
 -- bytestring can contain any bitcombinations (binary)
 
 -- bytestring with utf encoded characters
 newtype BSUTF = BSUTF ByteString
     deriving (Show, Read, Eq, Ord, Generic, Zeros, Semigroup, Monoid)
+    
+unBSUTF :: BSUTF -> ByteString
 unBSUTF (BSUTF a) = a
 
 
@@ -181,8 +200,10 @@ b2s = fmap t2s . b2t
 -- url - in url encode space as %20, as done in the network-uri library (for strings)
 --  better name: escape?
 -- urlForm - in form as + , as done in the snap core librar (for bytestrings in utf8 endocode)
+-- use only for the query part, not the full url!
 
 newtype URL = URL String deriving (Show, Eq)
+instance Zeros URL where zero = URL zero
 unURL (URL t) = t
 
 
@@ -259,7 +280,7 @@ u2t :: Text -> Maybe Text
 u2t = fmap s2t . u2s . t2s
 
 b2u :: ByteString -> Maybe ByteString
-b2u a = fmap s2b .  fmap s2u . b2s $ a
+b2u a = (fmap (s2b . s2u) . b2s) $ a
 u2b :: ByteString -> Maybe ByteString
 u2b = fmap s2b . join  . fmap u2s . b2s
 
@@ -333,19 +354,21 @@ conv2latinChar c = if ord c < 256 then c else
         '\x201D' -> '"'
         '\x201E' -> '"'
         '\8212' -> '-'    -- em dash
-        '\8222' -> '"'    -- unclear why 8222 but is lower quote
-        '\8216' -> '\''    -- unclear why 8218 but is left single quote
-        '\8217' -> '\''    -- unclear why 8218 but is right single quote
-        '\8218' -> '\''    -- unclear why 8218 but is quote
+        '\8222' -> '"'    -- lower quote
+        '\8216' -> '\''    --  left single quote
+        '\8217' -> '\''    -- right single quote
+        '\8218' -> '\''    --  quote
         '\8221' -> '"'    -- unclear why 8221 but is quote
-        '\x2018' -> '\''
-        '\x2019' -> '\''
+--        '\x2018' -> '\''   -- same as 8216
+--        '\x2019' -> '\''  -- same as 8217
 
         _ -> c -- '\SUB'    -- could be another char ? \SUB
 
 findNonLatinChars :: String -> String
 -- ^ the result is a string of all the characters not in the latin1 encoding
-findNonLatinChars = filter (\c -> conv2latinChar c == '\SUB')
+-- possibly apply conv2latinChar first
+findNonLatinChars = nub . filter ((>256).ord )
+--            (\c -> conv2latinChar c == '\SUB')
 
 findNonLatinCharsT :: Text -> Text
 -- ^ the result is a string of all the characters not in the latin1 encoding
