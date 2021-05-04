@@ -1,9 +1,9 @@
- ---------------------------------------------------------------YamlBlocks.hs--------------
+ --------------------------------------------------------------------
 --
 -- Module      :  Strings
 -- Copyright   :
 --
--- | a module with a class for strings, sucht that the normal ops are
+-- | a module with a class for strings, such that the normal functions are
 --  all polymorphic for string and text (and total)
 -- the string (i.e. [Char]) functions are the semantic definitions,
 -- the other implementation are tested against these.
@@ -15,7 +15,7 @@
 
 -- class niceStrings can be replaced or integrated in the generic strings
 -- it may be useful to have more than one show like operation
------------------------------------------------------------------------------
+----------------------------------------------------------------------
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -54,36 +54,41 @@ module Uniform.Strings.Utilities
     )
     where
 
-import Uniform.Zero
-import Uniform.ListForm
+import Uniform.Zero (Zeros(..))
+import Uniform.ListForm ( ListForms(..) )
 
-import           Algebra.Laws             as Law
---import           Test.Framework
-import           Test.Invariant           as Rule (associative)
-
--- probably better just to move these module to package uniform-algebra
--- but there is so far only zero
 
 import           Data.Char                (isSpace, isLower, toLower, toUpper)
 import           Text.Printf              (PrintfArg, PrintfType, printf)
 
-import           Data.List                as L
---import qualified Data.Vector              as V
+import Data.List as L
+    ( sortBy, intercalate, isInfixOf, isPrefixOf, nub, stripPrefix )
 import           GHC.Exts                 (IsString (..))
 
-import qualified Data.List.Split          as S
-import           Data.Maybe
-import           Data.Monoid
+import qualified Data.List.Split         as S (splitOn)
+import Data.Maybe ( catMaybes )
+-- import           Data.Monoid
 import           Data.Text                (Text)
-import qualified Data.Text                as T
-import qualified Data.List.Utils       as LU
-import           Safe
+import qualified Data.Text                as T (head, cons, tail, append, singleton, unwords, words, unlines, lines, empty, toUpper, toLower, concat, isPrefixOf, isInfixOf, stripPrefix, stripSuffix, intercalate, splitOn, strip, dropEnd, reverse, length, filter, take, drop, replace, null, toTitle)
+import qualified Data.List.Utils       as LU (replace)
+import Safe ( readNote )
 -- import           Uniform.Error            (fromJustNote)
 -- not possible, because Error is based on String
-import           Uniform.Strings.Conversion
-import qualified Data.ByteString.Lazy as Lazy
+import Uniform.Strings.Conversion
+    ( Text,
+      BSUTF,
+      LazyByteString,
+      s2t,
+      t2s,
+      t2bu,
+      bu2t,
+      bu2s,
+      t2b,
+      s2bu,
+      b2bl )
+import qualified Data.ByteString.Lazy as Lazy (append, length, take, drop)
 import          Text.Read (readMaybe)
-import          Text.Show.Pretty 
+import Text.Show.Pretty ( ppShow ) 
 import "monads-tf" Control.Monad.State      (MonadIO, liftIO)
 import Control.Monad (when)
 
@@ -108,7 +113,6 @@ showList' = unlines' . map showT
 toLowerStart :: Text -> Text
 -- ^ convert the first character to lowercase - for Properties in RDF
 toLowerStart t = (toLower . T.head $ t) `T.cons` T.tail t
-
 
 toUpperStart :: Text -> Text
 -- ^ convert the first character to Uppercase - for  PosTags in Spanish
@@ -233,14 +237,14 @@ class (Zeros a, ListForms a, Eq a) => CharChains a where
     readMaybe' :: Read b => a -> Maybe b
     -- read something... needs type hints
 
-    prop_zero_mknull :: a -> Bool
-    prop_zero_mknull a = Law.zero append' a mknull
+--     prop_zero_mknull :: a -> Bool
+--     prop_zero_mknull a = Law.zero append' a mknull
 
-    prop_assoz :: a -> a -> a -> Bool
-    prop_assoz a b c = Rule.associative append' a b c
+--     prop_assoz :: a -> a -> a -> Bool
+--     prop_assoz a b c = Rule.associative append' a b c
 
-    prop_concat :: [a] -> Bool
-    prop_concat as =    concat' as == foldr append' mknull as
+--     prop_concat :: [a] -> Bool
+--     prop_concat as =    concat' as == foldr append' mknull as
 
     prop_filterChar :: a -> Bool
     -- test with fixed set of chars to filter out

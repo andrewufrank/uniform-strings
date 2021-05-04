@@ -1,4 +1,4 @@
-cabal-version: 1.12
+cabal-version: 2.2
 
 -- This file has been generated from package.yaml by hpack version 0.34.2.
 --
@@ -7,16 +7,22 @@ cabal-version: 1.12
 name:           uniform-strings
 version:        0.0.10.0
 synopsis:       manipulate and convert strings of characters uniformly and consistently
-description:    reduce complexity of Haskell by providing a set of uniformly named
-                of conversion routines between String, Text, ByteString and urlEncoding
+description:    reduce complexity of Haskell by providing a 
+                - set of uniformly named conversion functions between 
+                    - String, 
+                    - Text, 
+                    - ByteString, 
+                    - LazyByteString and 
+                    - urlEncoding
                 with the most important text manipulation functions for string and text
                 where the semantic is the same (tested with quickcheck).
+                Tentatively some infix string manipulations are offered as well. 
 category:       Data Text
+bug-reports:    https://github.com/andrewufrank/uniform-strings/issues
 author:         Andrew Frank
-maintainer:     Andrew U. Frank <andrewufrank@gmail.com>
+maintainer:     Andrew U. Frank <frank@geoinfo.tuwien.ac.at>
 copyright:      2021 Andrew U. Frank
-license:        GPL
-license-file:   GPL_3
+license:        GPL-2.0-only
 build-type:     Simple
 extra-source-files:
     README.md
@@ -38,12 +44,10 @@ library
     , bytestring
     , monads-tf
     , network-uri
-    , numeric-prelude
     , pretty-show
     , safe
     , snap-core
     , split
-    , test-invariant
     , text
     , text-icu
     , uniform-algebras
@@ -67,13 +71,11 @@ test-suite strings-test
     , bytestring
     , monads-tf
     , network-uri
-    , numeric-prelude
     , pretty-show
     , quickcheck-text
     , safe
     , snap-core
     , split
-    , test-invariant
     , text
     , text-icu
     , uniform-algebras

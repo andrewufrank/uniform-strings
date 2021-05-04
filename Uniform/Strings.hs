@@ -40,18 +40,19 @@ module Uniform.Strings (
 
 
 import           "monads-tf" Control.Monad.State      (MonadIO, liftIO)
-import           Data.List                as L
+import Data.List as L ()
 import qualified Data.List.Split          as S
 --if these string ops are desired (and not the usual ones from fileio
 -- then import them from Data.StringInfix
 
 -- only to avoid unusable shadowed
-import           Data.String
+import Data.String
+    ( IsString(..), lines, unlines, unwords, words, String )
 import qualified Data.Text                as T
 
 import qualified Data.Text.IO             as T 
-import           Uniform.ListForm
-import Text.Show.Pretty -- fromOthers (changed)
+import Uniform.ListForm ( ListForms(..) )
+import Text.Show.Pretty ( ppShow, ppShowList ) -- fromOthers (changed)
 -- for the tests
 import           Uniform.Strings.Conversion hiding (S)
 import           Uniform.Strings.Infix  hiding ((<.>), (</>))
@@ -81,6 +82,7 @@ wordwrap maxWidth text' = map s2t $ reverse (lastLine : accLines)
 putIOwordsT ::  MonadIO m => [T.Text] -> m ()
 putIOwordsT = putIOwords
 
+text0 :: Text
 text0 = "" :: Text 
 
 putIOline ::(MonadIO m, Show a) => Text -> a -> m () 

@@ -16,13 +16,10 @@
 -- functions used from other packages (with String interfaces)
 
 -----------------------------------------------------------------------------
---{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
--- {-# LANGUAGE PackageImports        #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE StandaloneDeriving
---    , GeneralizedNewtypeDeriving
     , DeriveGeneric
     , DeriveAnyClass
     , TypeSynonymInstances
@@ -43,7 +40,7 @@ module Uniform.Strings.Conversion (
     , b2bu, bu2b, bu2s, bu2t, t2bu, s2bu
     , u2b, u2t, b2uf, u2s, b2u
     , b2bl, bl2b -- lazy bytestring
-    , bl2t, t2bl 
+    , bl2t, t2bl
     , bb2t, bb2s  -- conversion with error if not UTF8
     , s2latin, t2latin, latin2t, latin2s -- conversion to the latin1 encoding
     , BSlat (..), s2lat, lat2s, t2lat, lat2t
@@ -53,11 +50,11 @@ module Uniform.Strings.Conversion (
     , filterLatin
     , module Safe
     )   where
-
-import           Safe
-import GHC.Generics
-import Uniform.Zero
-import Data.Semigroup
+-- 
+import           Safe (fromJustNote)
+import GHC.Generics ()
+import Uniform.Zero ( Generic, Zeros(zero) )
+-- import Data.Semigroup
 
 import Control.Monad (join)
 --import Data.ByteString.Arbitrary
@@ -74,12 +71,13 @@ import Data.Char (ord)
 import Data.List (nub)
 import           Data.ByteString      (ByteString)
 import qualified Data.ByteString      as ByteString
-import qualified Data.ByteString.Lazy as Lazy
+import qualified Data.ByteString.Lazy as Lazy 
 import Data.ByteString.Char8 (pack, unpack)
 -- An efficient compact, immutable byte string type (both strict and lazy)
 -- suitable for binary or 8-bit character data.
 -- import qualified Data.ByteString.UTF8 as BSUTF (toString, fromString)
 -- toString replaces invalid chars with '\xFFFD'
+
 import           Data.Text.Encoding   (decodeUtf8, decodeUtf8', encodeUtf8)
 -- decode bytestring to text (exception if not valid)
 
@@ -88,9 +86,9 @@ import           Data.Text.Encoding   (decodeUtf8, decodeUtf8', encodeUtf8)
 import qualified Network.URI          as URI
 import qualified Snap.Core            as SN
 
-import Data.Text.ICU.Convert  as ICU  -- all conversion stuff, neede for tests
+-- import Data.Text.ICU.Convert  as ICU  -- all conversion stuff, neede for tests
 --import Data.Text.Encoding as Encoding
-import qualified Data.Text.Lazy as LText
+import qualified Data.Text.Lazy as LText  -- (toStrict, fromStrict)
 -- import qualified Data.List as L
 -- import qualified Data.Text.IO as T (putStrLn)
 
@@ -101,8 +99,8 @@ bl2t :: LazyByteString ->Text
 -- ^ conversion from LazyByteString to text (only if guarantee that only utf8 values)
 bl2t =    bu2t . BSUTF . bl2b
 
-t2bl :: Text -> LazyByteString  
-t2bl =   b2bl . t2b 
+t2bl :: Text -> LazyByteString
+t2bl =   b2bl . t2b
 
 
 s2t :: String -> Text
@@ -113,8 +111,10 @@ t2s :: Text -> String
 -- ^ String to Text (invertable)
 t2s = T.unpack
 
+tl2t :: LText.Text -> Text
 tl2t = LText.toStrict
 
+t2tl :: Text -> LText.Text
 t2tl = LText.fromStrict
 
 type LazyByteString = Lazy.ByteString
@@ -127,7 +127,7 @@ instance Zeros LazyByteString where zero = b2bl zero
 -- bytestring with utf encoded characters
 newtype BSUTF = BSUTF ByteString
     deriving (Show, Read, Eq, Ord, Generic, Zeros, Semigroup, Monoid)
-    
+
 unBSUTF :: BSUTF -> ByteString
 unBSUTF (BSUTF a) = a
 
@@ -280,7 +280,7 @@ u2t :: Text -> Maybe Text
 u2t = fmap s2t . u2s . t2s
 
 b2u :: ByteString -> Maybe ByteString
-b2u a = (fmap (s2b . s2u) . b2s) $ a
+b2u = fmap (s2b . s2u) . b2s
 u2b :: ByteString -> Maybe ByteString
 u2b = fmap s2b . join  . fmap u2s . b2s
 
@@ -296,7 +296,7 @@ lat2s = latin2s . unBSlat
 
 s2lat :: String -> Maybe BSlat   -- is this always possible ?
 -- ^ string encoded as ByteString with latin encoding, if possible
-s2lat s =  fmap BSlat . s22latin $ s
+s2lat =  fmap BSlat . s22latin
 
 s3lat :: String ->  BSlat   -- is this always possible ?
 -- ^ string converted to represenatable as latin and then encoded
