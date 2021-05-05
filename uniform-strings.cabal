@@ -6,23 +6,30 @@ cabal-version: 2.2
 
 name:           uniform-strings
 version:        0.1.0
-synopsis:       manipulate and convert strings of characters uniformly and consistently
-description:    reduce complexity of Haskell by providing a 
+synopsis:       Manipulate and convert strings of characters uniformly and consistently
+description:    Reduce complexity of Haskell by providing a 
+                .
                 - set of uniformly named conversion functions between 
+                .
                     - String, 
+                .
                     - Text, 
+                .
                     - ByteString, 
+                .
                     - LazyByteString and 
+                .
                     - urlEncoding
+                .
                 with the most important text manipulation functions for string and text
                 where the semantic is the same (tested with quickcheck).
                 Tentatively some infix string manipulations are offered as well. 
                 .
                 Please see the README on GitHub at <https://github.com/andrewufrank/uniform-strings/readme>
-category:       Data Text
+category:       Data Text Uniform
 bug-reports:    https://github.com/andrewufrank/uniform-strings/issues
 author:         Andrew Frank
-maintainer:     Andrew U. Frank <frank@geoinfo.tuwien.ac.at>
+maintainer:     Andrew U. Frank <uniform@gerastree.at>
 copyright:      2021 Andrew U. Frank
 license:        GPL-2.0-only
 build-type:     Simple
