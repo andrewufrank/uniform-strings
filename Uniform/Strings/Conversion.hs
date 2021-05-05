@@ -51,8 +51,8 @@ module Uniform.Strings.Conversion (
     )   where
 -- 
 import           Safe (fromJustNote)
-import GHC.Generics ()
-import Uniform.Zero ( Generic, Zeros(zero) )
+import GHC.Generics (Generic)
+import Uniform.Zero (Zeros(zero) )
 
 import Control.Monad (join)
 

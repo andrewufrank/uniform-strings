@@ -15,8 +15,8 @@
 module Uniform.Strings.Infix  where
 
 import           GHC.Exts                 (IsString (..))
-import           Uniform.Strings.Conversion
-import           Uniform.Strings.Utilities
+import Uniform.Strings.Conversion ( Text )
+import Uniform.Strings.Utilities ( CharChains(append) )
 
 
 (<:>) :: Text -> Text -> Text

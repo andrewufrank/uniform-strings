@@ -22,7 +22,7 @@ module Uniform.Strings (
     , putIOwords
     , NiceStrings (..)
     , IsString (..)
-    , module Uniform.Zero
+    -- , module Uniform.Zero
     , module Uniform.ListForm
     , ppShowList, ppShow
     )   where
@@ -45,5 +45,5 @@ import Text.Show.Pretty ( ppShow, ppShowList ) -- fromOthers (changed)
 import           Uniform.Strings.Conversion hiding (S)
 import           Uniform.Strings.Infix  hiding ((<.>), (</>))
 import           Uniform.Strings.Utilities
-import           Uniform.Zero
+-- import           Uniform.Zero
 
