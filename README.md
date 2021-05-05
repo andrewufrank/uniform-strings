@@ -1,23 +1,35 @@
  
 
 # The uniform-strings package 
+
 Tries to resolve the confusing breadth of choices to represent and operate on text in Haskell. It contains 
-- a principled set of conversions between representations for text, namely 
+
+- a /principled/ set of conversions between representations for text, namely 
+
     - s - Strings,
+
     - t - Text,
+
     - b - ByteString,
+
     - l - LazyByteString, 
+
     - bu - ByteString containing UTF-8 characters,
+
     - latin - charcters with latin1 encoding
+
     - u - URLencoding, and 
-conversions functions of type x2y (e.g. s2t for a conversion from String to Text) and methods to circumvent the difficulties.
+
+conversions functions of type `x2y` (e.g. `s2t` for a conversion from String to Text) and methods to circumvent the difficulties.
+
 - a set of functions applicable to character strings, which have the exact same semantics for all the types (usually the name of the function applicable to Strings with an appended \"\'\" to avoid name clashes with existing code.
+
 - a few infix function for string manipulation. 
 
 This is a package in `uniformBase` and other uniform packages will build on it. 
 
 
-# To Do:
+To Do:
 The code originated in 2010 to 2018. It will be revised  and the dependencies greatly reduced when using `text` and `basement`.
 
 # Intention of "uniform" packages
