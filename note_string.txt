@@ -1,0 +1,36 @@
+uniformity: reducing complexity of software bottom up 
+
+complexity is the enemy of programmers. complexity is like entropy - you have to spend resources to reduce entropy and introduce order. over time, software grows and regular efforts to increase order and reduce complexity are required. haskell has grown during the two decades i am using it. hackage - the repository of useful packages of code contributed by others - has multiplied. It is often difficult, to find the "right" package.
+
+Areas where i sense Haskell has become "too complex" are places where many different solutions for the same task are offered, which are nearly identical, but only nearly identical and thus contribute to the complexity increase. a prime example is handling of character strings, IO, etc. At this time, I addess issues with character strings but i see that others have published packages with similar intentions (e.g. uniform-io).
+
+there are (at least) the several representations for character strings, which have different performance and are appropriate in different applications.
+
+- the classical String
+- the more efficient Text 
+- ByteString
+- urlEncoding (as String or Text) 
+
+conversion between these formats are in principle easy but distributed over several packages, which must be identified and individually importet. the names for the conversion routines vary - all details wich add complexity and throw the programmer off when concentrating on some other aspect.
+
+for each of these representations, functions with nearly the same semantics and nearly the same name exist.
+
+the package uniformity-strings provides:
+- a regularly named set of conversions
+- functions to handle strings of characters independent of reresentation (at least String and Text) with identical syntax and semantics and which are total (changing the return of splitOn to Maybe).
+
+i added some functions which i find generally useful, primarily a functin putIOwords which puts a list of strings to the standard output. (putStrLn . unwords) two variants (putIOwordsS and putIOwordsT) are provided to fix the types for use with "overloaded strings" pragma, if necessary (to avoid the error message ambiguous type from ghc).  
+
+the package includes tests for
+- inverses: string to text and text to string are inverse
+- same semantics: functions applied to String or Text have the same result.
+  
+
+other similar packages are 
+string-conversions: gives a single polymorphic operation "convertString" and some monomorphic (typed) functions. I found that use of the polymorphic functins requires many type annotations. for this reason, i constructed short named monomorphic functions.
+it might be desirable to extend uniform-strings to include the other formats from string-conversion and to use the conversions offered in string-conversions. 
+perhaps, ultimately, the two packages should be merged?  
+
+convertible-text package is depreceated.
+
+ 

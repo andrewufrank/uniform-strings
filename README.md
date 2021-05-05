@@ -16,14 +16,11 @@ conversions functions of type x2y (e.g. s2t for a conversion from String to Text
 
 This is a package in `uniformBase` and other uniform packages will build on it. 
 
-# Pointers to somewhat related things: 
-- [text](http://hackage.haskell.org/package/text).
-- [basement](https://hackage.haskell.org/package/basement) 
 
 # To Do:
-The code originated in 2010 to 2018. It will be revised to use `text` and `basement` to reduce the code here.
+The code originated in 2010 to 2018. It will be revised  and the dependencies greatly reduced when using `text` and `basement`.
 
-# Intension of "uniform" packages
+# Intention of "uniform" packages
 The "uniform" packages are yet another attempt to select a useful subset from the overwhelming variety of the Haskell biotop. It was started in the 2010, grew over the years but was never packaged and put into Hackage; it is comparable to other similar attempts from which it has learned and occasionally copied code. 
 
 The "uniform" approach is different from some others by:

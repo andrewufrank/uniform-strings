@@ -359,7 +359,7 @@ instance CharChains Text where
 instance CharChains LazyByteString where
     append' = Lazy.append
     lengthChar a = fromIntegral . Lazy.length $ a  
-        -- ^ gives not exact value??
+        --  gives not exact value??
     take' = Lazy.take . fromIntegral 
     drop' = Lazy.drop . fromIntegral  
 
@@ -377,7 +377,7 @@ showT t = s2t c
     where c = show t :: String
 
 instance CharChains BSUTF  where
--- ^ works on utf8 encoded bytestring, convert with b2bu and bu2b
+-- works on utf8 encoded bytestring, convert with b2bu and bu2b
 
     toString = bu2s
     toText = bu2t

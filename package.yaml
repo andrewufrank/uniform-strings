@@ -19,6 +19,9 @@ description: |
     with the most important text manipulation functions for string and text
     where the semantic is the same (tested with quickcheck).
     Tentatively some infix string manipulations are offered as well. 
+    
+    Please see the README on GitHub at <https://github.com/andrewufrank/uniform-strings/readme>
+
 
 extra-source-files:
 - README.md
@@ -43,6 +46,9 @@ dependencies:
 library:
   source-dirs: 
   - .
+  verbatim:
+    autogen-modules:
+        Paths_uniform_strings
 
 # tests:
 #   strings-test:
