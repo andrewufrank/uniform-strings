@@ -63,6 +63,7 @@ import qualified Data.Text                as T
 -- not possible, because Error is based on String
 --import           Uniform.StringConversion
 import qualified Data.ByteString.Lazy as Lazy
+import Uniform.Properties
 
 
 prop_zero_mknull_string :: String -> Bool
