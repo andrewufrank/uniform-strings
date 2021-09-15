@@ -431,7 +431,7 @@ class   NiceStrings a where
     showlong = shownice  -- a default
 class Show a => PrettyStrings a where 
     showPretty :: a -> Text
-instance Show a => PrettyStrings a where
+instance  {-# OVERLAPPABLE #-} Show a => PrettyStrings a where
     showPretty = s2t . ppShow
 
 instance NiceStrings Text where
