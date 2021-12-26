@@ -57,17 +57,17 @@ library:
     autogen-modules:
         Paths_uniform_strings
 
-tests:
-  strings-test:
-    main:                Testing.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - HTF
-    - quickcheck-text
-    - test-invariant
-    - uniform-strings
-    - uniform-algebras
+# tests:
+#   strings-test:
+#     main:                Testing.hs
+#     source-dirs:         test
+#     ghc-options:
+#     - -threaded
+#     - -rtsopts
+#     - -with-rtsopts=-N
+#     dependencies:
+#     - HTF
+#     - quickcheck-text
+#     - test-invariant
+#     - uniform-strings
+#     - uniform-algebras
