@@ -43,12 +43,10 @@ dependencies:
 - pretty-show
 - MissingH  # replace
 - split # split on
-- snap-core # for urlEncode
+# - snap-core # for urlEncode, for 9.2.1 problem with attoparsec <0.14
 - text-icu
 - network-uri
-
-
-- uniform-algebras # for zero
+- uniform-algebras == 0.1.2 # for zero
 
 library:
   source-dirs: 
