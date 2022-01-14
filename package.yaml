@@ -35,7 +35,7 @@ extra-source-files:
 - ChangeLog.md
 
 dependencies:
-- base  
+- base  > 4.5 && < 5
 - monads-tf
 - safe  # fromJustNote
 - text
@@ -46,7 +46,7 @@ dependencies:
 # - snap-core # for urlEncode, for 9.2.1 problem with attoparsec <0.14
 - text-icu
 - network-uri
-- uniform-algebras == 0.1.2 # for zero
+- uniform-algebras >= 0.1.2 # for zero
 
 library:
   source-dirs: 
