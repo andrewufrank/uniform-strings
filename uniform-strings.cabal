@@ -1,11 +1,11 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.34.6.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:           uniform-strings
-version:        0.1.2
+version:        0.1.3
 synopsis:       Manipulate and convert strings of characters uniformly and consistently
 description:    Reduce complexity of Haskell by providing a 
                 .
@@ -24,6 +24,8 @@ description:    Reduce complexity of Haskell by providing a
                 with the most important text manipulation functions for string and text
                 where the semantic is the same (tested with quickcheck).
                 Tentatively some infix string manipulations are offered as well. 
+                .
+                v 0.1.3 added stack build lts 19.16 for ghc 9.0.2
                 .
                 Please see the README on GitHub at <https://github.com/andrewufrank/uniform-strings/readme>
 category:       Data Text Uniform
@@ -58,6 +60,6 @@ library
     , split
     , text
     , text-icu
-    , uniform-algebras >=0.1.2
+    , uniform-algebras >=0.1.3
   default-language: Haskell2010
   autogen-modules: Paths_uniform_strings
