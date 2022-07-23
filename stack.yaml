@@ -1,0 +1,15 @@
+
+resolver: lts-19.16 # for ghc 9.0.2 newest lts
+
+packages:
+- .
+ 
+extra-deps:   #to expand with local packages 
+- ../uniform-algebras
+
+
+- test-invariant-0.4.5.0@sha256:d1aa6b61e0057a4065eeff3286208e947a0b44c6a2186210399f5e5e7fb0d0dd,1902
+
+ghc-options:
+  "$everything": -haddock  # for documentation
+  "$everything": -Wno-deprecations
