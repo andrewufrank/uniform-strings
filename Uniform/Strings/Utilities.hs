@@ -59,7 +59,7 @@ import           Data.Char                (isSpace, isLower, toLower, toUpper)
 import           Text.Printf              (PrintfArg, PrintfType, printf)
 
 import Data.List as L
-    ( sortBy, intercalate, isInfixOf, isPrefixOf, nub, stripPrefix )
+    ( sortBy, intercalate, isInfixOf, isPrefixOf, nub, stripPrefix, intersperse )
 import           GHC.Exts                 (IsString (..))
 
 import qualified Data.List.Split         as S (splitOn)
@@ -86,6 +86,7 @@ import          Text.Read (readMaybe)
 import Text.Show.Pretty ( ppShow ) 
 import "monads-tf" Control.Monad.State      (MonadIO, liftIO)
 import Control.Monad (when)
+import Data.ByteString (intersperse)
 
 
 readNoteTs :: (Show a, Read a) =>  [Text] -> Text -> a   -- TODO
@@ -448,11 +449,15 @@ instance NiceStrings Double where
 instance (NiceStrings a, NiceStrings b) => NiceStrings (a,b) where
     shownice (a,b) = unwords' [shownice a, shownice b]
     showlong (a,b) = unwords' [showlong a, showlong b]
-instance (NiceStrings a) => NiceStrings [a] where
+instance (Show a, NiceStrings a) => NiceStrings [a] where
     shownice as = concat' . catMaybes $ [intercalate' "," .  map shownice $ as, Just "\n"]
-    shownice as = concat' . catMaybes $ [intercalate' "," .  map showlong $ as, Just "\n"]
+    showlong as = concat' . L.intersperse ",\n" $ (map showT as) 
+    -- catMaybes $ [intercalate' "\n" .  map showlong $ as, Just "\n"]
 
 instance (NiceStrings a) => NiceStrings (Maybe a) where
     shownice (Just a)  = shownice a
     shownice Nothing = "Nothing"
+
+instance (Show a, Show b, Show c) => NiceStrings (a,b,c) where 
+            showNice a = showT a 
 

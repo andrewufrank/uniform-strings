@@ -81,10 +81,10 @@ instance Arbitrary URL where
     arbitrary = do
             a <- arbitrary
             return . s2url $ a
-instance Arbitrary URLform where
-    arbitrary = do
-            a :: ByteString <- arbitrary
-            return . b2urlf $ a
+-- instance Arbitrary URLform where
+--     arbitrary = do
+--             a :: ByteString <- arbitrary
+--             return . b2urlf $ a
 instance Arbitrary BSlat where
     arbitrary =  do
                     c :: ByteString <- arbitrary
@@ -149,12 +149,12 @@ prop_u2s a = maybe True ((a==) . s2u) mb
 
 -- case for encoding of form content (with + for space)
 
---newtype URLform = URLform ByteString deriving (Show, Eq)
---unURLform (URLform t) = t
---instance Arbitrary URLform where
---    arbitrary = do
---            a :: ByteString <- arbitrary
---            return . b2urlf $ a
+-- newtype URLform = URLform ByteString deriving (Show, Eq)
+-- unURLform (URLform t) = t
+instance Arbitrary URLform where
+   arbitrary = do
+           a :: ByteString <- arbitrary
+           return . b2urlf $ a
 
 prop_t2u :: Text -> Bool
 prop_t2u a = maybe True (a==) (u2t . t2u $ a)

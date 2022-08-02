@@ -1,5 +1,5 @@
 name:         uniform-strings
-version:      0.1.3
+version:      0.1.3.2
 license:      GPL-2.0-only
 # license-file: GPL_3
 maintainer:   Andrew U. Frank <uniform@gerastree.at>
@@ -27,8 +27,9 @@ description: |
     where the semantic is the same (tested with quickcheck).
     Tentatively some infix string manipulations are offered as well. 
     
-    v 0.1.3 added stack build lts 19.16 for ghc 9.0.2
-    
+      - 0.1.3 added stack build lts 19.16 for ghc 9.0.2
+      - 0.1.3.1 removed dependency on text-icu
+
     Please see the README on GitHub at <https://github.com/andrewufrank/uniform-strings/readme>
     
 
@@ -45,8 +46,8 @@ dependencies:
 - pretty-show
 - MissingH  # replace
 - split # split on
-# - snap-core # for urlEncode, for 9.2.1 problem with attoparsec <0.14
-- text-icu
+- snap-core # for urlEncode, for 9.2.1 problem with attoparsec <0.14
+# - text-icu
 - network-uri
 - uniform-algebras >= 0.1.3 # for zero
 
@@ -57,17 +58,17 @@ library:
     autogen-modules:
         Paths_uniform_strings
 
-# tests:
-#   strings-test:
-#     main:                Testing.hs
-#     source-dirs:         test
-#     ghc-options:
-#     - -threaded
-#     - -rtsopts
-#     - -with-rtsopts=-N
-#     dependencies:
-#     - HTF
-#     - quickcheck-text
-#     - test-invariant
-#     - uniform-strings
-#     - uniform-algebras
+tests:
+  strings-test:
+    main:                Testing.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - HTF
+    - quickcheck-text
+    - test-invariant
+    - uniform-strings
+    - uniform-algebras

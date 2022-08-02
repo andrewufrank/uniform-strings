@@ -5,3 +5,7 @@
             added LanguageCodes, needs uniform-algebras
 0.1.2 for 9.2.1 
     removed snap-core, because limited with attoparsec <0.14
+0.1.3
+    pushed on hackage
+0.1.3.2
+    added showlong for arrays to list one item per line

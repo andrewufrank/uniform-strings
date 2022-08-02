@@ -28,6 +28,8 @@ Tries to resolve the confusing breadth of choices to represent and operate on te
 
 This is a package in `uniformBase` and other uniform packages will build on it. 
 
+It may require  
+    debian: apt-get install libicu-dev
 
 To Do:
 The code originated in 2010 to 2018. It will be revised  and the dependencies greatly reduced when using `text` and `basement`.

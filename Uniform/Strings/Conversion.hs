@@ -35,7 +35,7 @@ module Uniform.Strings.Conversion (
     -- uses UTF8 as encoding in ByteString
     -- urlencode is always represented the same as the input
     , Text (..), BSUTF (..), URL (..)
-    -- , URLform , b2uf, b2urlf, urlf2b,
+    , URLform , b2uf, b2urlf, urlf2b
 
     , b2bu, bu2b, bu2s, bu2t, t2bu, s2bu
     , u2b, u2t,  u2s, b2u
@@ -69,7 +69,7 @@ import Data.ByteString.Char8 (pack, unpack)
 import           Data.Text.Encoding   (decodeUtf8, decodeUtf8', encodeUtf8)
 
 import qualified Network.URI          as URI
--- import qualified Snap.Core            as SN
+import qualified Snap.Core            as SN
 
 import qualified Data.Text.Lazy as LText  -- (toStrict, fromStrict)
 
@@ -207,38 +207,39 @@ u2s  =   fmap url2s . u2url
 
 
 -- case for encoding of form content (with + for space)
--- removed for 9.2.1 
--- newtype URLform = URLform ByteString deriving (Show, Eq)
--- unURLform :: URLform -> ByteString
--- unURLform (URLform t) = t
+-- to remove for 9.2.1 
+
+newtype URLform = URLform ByteString deriving (Show, Eq)
+unURLform :: URLform -> ByteString
+unURLform (URLform t) = t
 
 
--- b2urlf :: ByteString -> URLform
--- -- ^ convert string to url   (uses code from SNAP, which converts space into +)
--- b2urlf =   URLform . SN.urlEncode
+b2urlf :: ByteString -> URLform
+-- ^ convert string to url   (uses code from SNAP, which converts space into +)
+b2urlf =   URLform . SN.urlEncode
 
--- urlf2b :: URLform -> ByteString
--- -- ^ convert url to string   (uses code from SNAP, which converts space into +)
--- urlf2b = fromJustNote "urlf2b nothing" . SN.urlDecode . unURLform
+urlf2b :: URLform -> ByteString
+-- ^ convert url to string   (uses code from SNAP, which converts space into +)
+urlf2b = fromJustNote "urlf2b nothing" . SN.urlDecode . unURLform
 
 
--- testUrlEncodingSNAP :: ByteString -> Bool
--- testUrlEncodingSNAP a =  maybe False ((a ==). SN.urlEncode) . SN.urlDecode $ a
+testUrlEncodingSNAP :: ByteString -> Bool
+testUrlEncodingSNAP a =  maybe False ((a ==). SN.urlEncode) . SN.urlDecode $ a
  
--- urlf2u :: URLform -> ByteString
--- urlf2u = unURLform
--- u2urlf :: ByteString -> Maybe URLform
--- u2urlf a = if testUrlEncodingSNAP a then Just (URLform a) else Nothing
--- -- this test allows control in url encoded strings ...
+urlf2u :: URLform -> ByteString
+urlf2u = unURLform
+u2urlf :: ByteString -> Maybe URLform
+u2urlf a = if testUrlEncodingSNAP a then Just (URLform a) else Nothing
+-- this test allows control in url encoded strings ...
 
 
--- b2uf :: ByteString -> ByteString
--- -- ^ convert ByteString to url   (uses code from SNAP which converts space into +)
--- b2uf = urlf2u . b2urlf
+b2uf :: ByteString -> ByteString
+-- ^ convert ByteString to url   (uses code from SNAP which converts space into +)
+b2uf = urlf2u . b2urlf
 
--- uf2b :: ByteString -> Maybe ByteString     --not inverse
--- -- ^ convert url to ByteString   (uses code from SNAP, which converts space into +)
--- uf2b  =   fmap urlf2b . u2urlf
+uf2b :: ByteString -> Maybe ByteString     --not inverse
+-- ^ convert url to ByteString   (uses code from SNAP, which converts space into +)
+uf2b  =   fmap urlf2b . u2urlf
 
 
 t2u :: Text -> Text
