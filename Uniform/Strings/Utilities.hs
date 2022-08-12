@@ -424,10 +424,10 @@ maybe2string (Just s) = s
 string2maybe :: (Eq a, IsString a) => a -> Maybe a
 string2maybe x = if x == "" then Nothing else Just x
 
-class   NiceStrings a where
+class  (Show a) =>  NiceStrings a where
     shownice, showNice :: a -> Text
-    showNice = shownice
-    shownice = showNice 
+    -- showNice = shownice
+    shownice = showT  -- as default 
     showlong :: a -> Text
     showlong = shownice  -- a default
 class Show a => PrettyStrings a where 
@@ -450,8 +450,8 @@ instance (NiceStrings a, NiceStrings b) => NiceStrings (a,b) where
     shownice (a,b) = unwords' [shownice a, shownice b]
     showlong (a,b) = unwords' [showlong a, showlong b]
 instance (Show a, NiceStrings a) => NiceStrings [a] where
-    shownice as = concat' . catMaybes $ [intercalate' "," .  map shownice $ as, Just "\n"]
-    showlong as = concat' . L.intersperse ",\n" $ (map showT as) 
+    shownice as = concat' . L.intersperse ",\t\t" $ (map shownice as) 
+    showlong as = concat' . L.intersperse ",\n" $ (map shownice as) 
     -- catMaybes $ [intercalate' "\n" .  map showlong $ as, Just "\n"]
 
 instance (NiceStrings a) => NiceStrings (Maybe a) where

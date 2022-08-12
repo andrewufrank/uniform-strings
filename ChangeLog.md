@@ -9,3 +9,12 @@
     pushed on hackage
 0.1.3.2
     added showlong for arrays to list one item per line
+0.1.3.3
+    import frm similar packages:
+    - algebra of programming: https://hackage.haskell.org/package/aop-prelude-0.4.1.1/docs/src/AOPPrelude.html 
+    - from thielmann: https://hackage.haskell.org/package/utility-ht
+    - from mitchel : https://hackage.haskell.org/package/extra
+    could be better just to copy the code.
+    changes: swapPair -> swap, pair -> both
+
+    split off the tuples stuff from the pointless
