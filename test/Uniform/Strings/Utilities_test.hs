@@ -210,3 +210,6 @@ test_show'_forString = assertEqual ("a"::Text) (show' ("a"::Text))
 --    putIOwords ["intercalate' for string", show  c1, "-"]
 --    putIOwords ["intercalate' for text",   show  c2, "-"]
 --    return True
+
+test_float1 = assertEqual "3.142" (shownice (pi::Float))
+test_double1 = assertEqual "3.142" (shownice (pi::Double))

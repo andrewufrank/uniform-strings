@@ -429,6 +429,9 @@ class  (Show a) =>  NiceStrings a where
     -- showNice = shownice
     shownice = showT  -- as default 
     showlong :: a -> Text
+    showAsLines :: [a] -> Text
+    -- ^ show on a line, does not propagate, inside is shown normally
+    showAsLines = unlines' . map showT 
     showlong = shownice  -- a default
 class Show a => PrettyStrings a where 
     showPretty :: a -> Text
@@ -442,8 +445,14 @@ instance NiceStrings Text where
 instance NiceStrings Int where
     shownice = show'
     showlong = show'
+
+-- instance NiceStrings Float where shownice = s2t . showDP 4
+
+-- for printf https://hackage.haskell.org/package/base-4.17.0.0/docs/Text-Printf.html
+instance NiceStrings Float where shownice f = s2t $ printf "%.3f" f
+
 instance NiceStrings Double where
-    shownice = show'
+    shownice s = s2t . printf "%.3f" $ s
     showlong = show'
 
 instance (NiceStrings a, NiceStrings b) => NiceStrings (a,b) where

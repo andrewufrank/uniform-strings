@@ -18,3 +18,8 @@
     changes: swapPair -> swap, pair -> both
 
     split off the tuples stuff from the pointless
+0.1.3.4 
+0.1.3.5 
+    instance shownice 
+    added shownice with 4 digits precision
+        showAsLines - shows list, inside is shown regularly, does not propagate
