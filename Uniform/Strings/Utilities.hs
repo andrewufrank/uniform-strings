@@ -48,6 +48,7 @@ module Uniform.Strings.Utilities
     -- to generalize
     , dropWhile, takeWhile, span, break
     , formatInt
+    , showAsLines
     )
     where
 
@@ -411,6 +412,10 @@ formatInt n  = s2t . case n of
 unlinesT :: [Text] -> Text
 unlinesT = unlines'
 
+showAsLines :: Show a => [a] -> Text
+-- ^ show on a line, does not propagate, inside is shown normally
+showAsLines = unlines' . map showT 
+ 
 sortCaseInsensitive :: (Ord a, CharChains a) => [a] -> [a]
 sortCaseInsensitive = sortBy cmpCaseInsensitive
 
@@ -429,9 +434,6 @@ class  (Show a) =>  NiceStrings a where
     -- showNice = shownice
     shownice = showT  -- as default 
     showlong :: a -> Text
-    showAsLines :: [a] -> Text
-    -- ^ show on a line, does not propagate, inside is shown normally
-    showAsLines = unlines' . map showT 
     showlong = shownice  -- a default
 class Show a => PrettyStrings a where 
     showPretty :: a -> Text

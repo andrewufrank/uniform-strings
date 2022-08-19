@@ -11,6 +11,13 @@ packages:
       sha256: 4a43697da369287edfe604a1a9d38f07fd50a49816028f25054b07842567cfa2
   original:
     hackage: test-invariant-0.4.5.0@sha256:d1aa6b61e0057a4065eeff3286208e947a0b44c6a2186210399f5e5e7fb0d0dd,1902
+- completed:
+    hackage: aop-prelude-0.4.1.1@sha256:87f541964bb8c0e042125955bf1580020a664e62ab101b0a1068b8f278c2e001,1207
+    pantry-tree:
+      size: 322
+      sha256: b640e09a57733dc9d75392d613114c8e07197ff0cd5be2f65e376849bf1b75d3
+  original:
+    hackage: aop-prelude-0.4.1.1@sha256:87f541964bb8c0e042125955bf1580020a664e62ab101b0a1068b8f278c2e001,1207
 snapshots:
 - completed:
     size: 619163

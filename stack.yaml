@@ -9,6 +9,7 @@ extra-deps:   #to expand with local packages
 
 
 - test-invariant-0.4.5.0@sha256:d1aa6b61e0057a4065eeff3286208e947a0b44c6a2186210399f5e5e7fb0d0dd,1902
+- aop-prelude-0.4.1.1@sha256:87f541964bb8c0e042125955bf1580020a664e62ab101b0a1068b8f278c2e001,1207
 
 ghc-options:
   "$everything": -haddock  # for documentation
