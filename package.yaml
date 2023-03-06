@@ -3,6 +3,7 @@ version:      0.1.5.1
 license:      GPL-2.0-only
 # license-file: GPL_3
 maintainer:   Andrew U. Frank <uniform@gerastree.at>
+github: github.com:andrewufrank/uniform-strings.git
 bug-reports:  https://github.com/andrewufrank/uniform-strings/issues
 author:       Andrew Frank
 copyright:    2021 Andrew U. Frank
