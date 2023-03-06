@@ -7,7 +7,9 @@
     removed snap-core, because limited with attoparsec <0.14
 0.1.3
     pushed on hackage
-0.1.3.2
+
+0.1.3 added stack build lts 19.16 for ghc 9.0.2
+0.1.3.1 removed dependency on text-icu0.1.3.2
     added showlong for arrays to list one item per line
 0.1.3.3
     import frm similar packages:
@@ -23,3 +25,4 @@
     instance shownice 
     added shownice with 4 digits precision
         showAsLines - shows list, inside is shown regularly, does not propagate
+0.1.5.1  ghc 9.2.5 changed versino to be in sync with other packages
